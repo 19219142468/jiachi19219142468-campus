@@ -1,0 +1,36 @@
+{
+  "name": "campus-service-platform",
+  "version": "1.0.0",
+  "description": "校园综合服务平台",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview",
+    "server": "node --watch api/server.js",
+    "start": "node api/server.js"
+  },
+  "dependencies": {
+    "@heroicons/vue": "^1.0.6",
+    "axios": "^1.18.1",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.6",
+    "express": "^4.22.2",
+    "jsonwebtoken": "^9.0.3",
+    "pinia": "^2.3.1",
+    "qs": "^6.11.0",
+    "uuid": "^9.0.1",
+    "vue": "^3.5.39",
+    "vue-router": "^4.6.4",
+    "ws": "^8.21.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.4",
+    "autoprefixer": "^10.4.18",
+    "postcss": "^8.4.35",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.4.2",
+    "vite": "^5.1.6",
+    "vue-tsc": "^2.0.6"
+  }
+}

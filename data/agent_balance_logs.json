@@ -1,0 +1,24 @@
+[
+  {
+    "id": 1,
+    "agent_id": 2,
+    "type": "commission",
+    "amount": 0.09,
+    "balance_after": 0.09,
+    "related_id": 13,
+    "related_type": "order",
+    "description": "订单佣金 - 校内包裹配送服务",
+    "created_at": "2026-06-29T17:48:11.230Z"
+  },
+  {
+    "id": 2,
+    "agent_id": 2,
+    "type": "commission",
+    "amount": 6.75,
+    "balance_after": 6.84,
+    "related_id": 14,
+    "related_type": "order",
+    "description": "订单佣金 - 文案代写",
+    "created_at": "2026-06-29T17:48:38.256Z"
+  }
+]

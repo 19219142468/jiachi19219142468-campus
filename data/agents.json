@@ -1,0 +1,21 @@
+[
+  {
+    "id": 2,
+    "username": "嘉驰校园服务",
+    "password": "$2a$10$cKhhCYRKpz1psTBnTvQKauvs6uKDro/swH8F0ArMG8odOo181D6Xy",
+    "name": "嘉驰",
+    "phone": "19219142468",
+    "avatar": "",
+    "services": [
+      "print",
+      "express",
+      "handwriting",
+      "course"
+    ],
+    "status": 1,
+    "total_orders": 2,
+    "total_income": 6.84,
+    "created_at": "2026-06-29T15:26:43.546Z",
+    "balance": 6.84
+  }
+]

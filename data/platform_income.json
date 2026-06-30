@@ -1,0 +1,22 @@
+[
+  {
+    "id": 1,
+    "order_id": 13,
+    "order_type": "express",
+    "agent_id": 2,
+    "amount": 0.01,
+    "total_amount": 0.1,
+    "description": "订单抽成 - 校内包裹配送服务",
+    "created_at": "2026-06-29T17:48:11.231Z"
+  },
+  {
+    "id": 2,
+    "order_id": 14,
+    "order_type": "handwriting",
+    "agent_id": 2,
+    "amount": 0.75,
+    "total_amount": 7.5,
+    "description": "订单抽成 - 文案代写",
+    "created_at": "2026-06-29T17:48:38.257Z"
+  }
+]
