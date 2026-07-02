@@ -25,7 +25,7 @@
                 :class="['p-4 rounded-xl border-2 text-center transition-all', form.size === 'small' ? 'border-primary-500 bg-primary-50' : 'border-gray-200 hover:border-gray-300']"
               >
                 <p class="text-lg font-semibold text-gray-800">小件</p>
-                <p class="text-primary-600 font-bold mt-1">¥1.2起</p>
+                <p class="text-primary-600 font-bold mt-1">¥{{ smallPrice.toFixed(1) }}起</p>
               </button>
               <button
                 type="button"
@@ -33,7 +33,7 @@
                 :class="['p-4 rounded-xl border-2 text-center transition-all', form.size === 'large' ? 'border-primary-500 bg-primary-50' : 'border-gray-200 hover:border-gray-300']"
               >
                 <p class="text-lg font-semibold text-gray-800">大件</p>
-                <p class="text-primary-600 font-bold mt-1">¥2.5起</p>
+                <p class="text-primary-600 font-bold mt-1">¥{{ largePrice.toFixed(1) }}起</p>
               </button>
             </div>
           </div>
@@ -167,15 +167,17 @@
         </ul>
       </div>
     </main>
+    <MobileBottomNav />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { orderApi } from '@/api'
+import { orderApi, publicApi } from '@/api'
 import { ensureLoggedIn } from '@/utils/auth-helper'
 import { ChevronLeftIcon, InformationCircleIcon, CheckCircleIcon } from '@heroicons/vue/outline'
+import MobileBottomNav from '@/components/MobileBottomNav.vue'
 
 const router = useRouter()
 const loading = ref(false)
@@ -191,18 +193,21 @@ const form = ref({
   remark: ''
 })
 
+// 从后端拉取的价格配置
+const smallPrice = ref(0.1)
+const largePrice = ref(2.5)
+const smallUrgentFee = ref(0.8)
+const largeUrgentFee = ref(1.5)
+
 const basePrice = computed(() => {
-  if (form.value.size === 'small') {
-    return 0.1
-  }
-  return 2.5
+  return form.value.size === 'small' ? smallPrice.value : largePrice.value
 })
 
 const urgentPrice = computed(() => {
   if (form.value.size === 'small') {
-    return form.value.urgent ? 0.8 : 0
+    return form.value.urgent ? smallUrgentFee.value : 0
   }
-  return form.value.urgent ? 1.5 : 0
+  return form.value.urgent ? largeUrgentFee.value : 0
 })
 
 const totalPrice = computed(() => basePrice.value + urgentPrice.value)
@@ -220,7 +225,18 @@ const deliveryTime = computed(() => {
   return '普通配送：24小时内送达'
 })
 
-onMounted(() => {
+onMounted(async () => {
+  // 从后端拉取价格配置
+  try {
+    const res: any = await publicApi.getServicePrices()
+    if (res.code === 0 && res.data) {
+      if (res.data.express_small_price) smallPrice.value = parseFloat(res.data.express_small_price)
+      if (res.data.express_large_price) largePrice.value = parseFloat(res.data.express_large_price)
+      if (res.data.express_small_urgent) smallUrgentFee.value = parseFloat(res.data.express_small_urgent)
+      if (res.data.express_large_urgent) largeUrgentFee.value = parseFloat(res.data.express_large_urgent)
+    }
+  } catch (e) {}
+
   // 如果有保存的手机号，自动填充
   const savedPhone = localStorage.getItem('visitor_phone')
   if (savedPhone) {

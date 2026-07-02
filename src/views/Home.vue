@@ -1,5 +1,69 @@
 <template>
   <div class="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <!-- 强制公告弹窗 -->
+    <div v-if="showAnnouncement" class="fixed inset-0 bg-black/60 flex items-center justify-center z-[100] p-4">
+      <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden border-4 border-orange-400">
+        <div class="bg-gradient-to-r from-orange-500 to-amber-500 p-5">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+              <ExclamationIcon class="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h3 class="text-xl font-bold text-white">重要通知</h3>
+              <p class="text-orange-100 text-sm">请务必仔细阅读以下内容</p>
+            </div>
+          </div>
+        </div>
+        <div class="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
+          <div class="bg-orange-50 border border-orange-200 rounded-xl p-4">
+            <div class="flex items-start gap-3">
+              <span class="bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded flex-shrink-0">一</span>
+              <div>
+                <p class="font-semibold text-orange-900">保存好支付记录</p>
+                <p class="text-sm text-orange-700 mt-1">支付完成后，请务必保存好转账截图和支付凭证，订单备注必须准确填写，以便客服核实。</p>
+              </div>
+            </div>
+          </div>
+          <div class="bg-red-50 border border-red-200 rounded-xl p-4">
+            <div class="flex items-start gap-3">
+              <span class="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded flex-shrink-0">二</span>
+              <div>
+                <p class="font-semibold text-red-900">金额必须准确</p>
+                <p class="text-sm text-red-700 mt-1">转账金额必须与订单金额完全一致，少付或多付都可能导致系统识别失败，影响订单处理进度。</p>
+              </div>
+            </div>
+          </div>
+          <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+            <div class="flex items-start gap-3">
+              <span class="bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded flex-shrink-0">三</span>
+              <div>
+                <p class="font-semibold text-blue-900">客服联系方式</p>
+                <p class="text-sm text-blue-700 mt-1">如有任何问题，请及时联系客服微信：<span class="font-mono font-bold">wxid_jv428py2ftir22</span></p>
+                <p class="text-sm text-blue-600 mt-1">工作时间：每天 9:00 - 22:00</p>
+              </div>
+            </div>
+          </div>
+          <div class="bg-green-50 border border-green-200 rounded-xl p-4">
+            <div class="flex items-start gap-3">
+              <span class="bg-green-500 text-white text-xs font-bold px-2 py-1 rounded flex-shrink-0">四</span>
+              <div>
+                <p class="font-semibold text-green-900">上传凭证截图</p>
+                <p class="text-sm text-green-700 mt-1">支付完成后，请在订单页面上传转账截图，客服核实后订单将自动进入处理流程。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="p-6 border-t border-gray-100">
+          <button 
+            @click="closeAnnouncement"
+            class="w-full py-3.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-xl hover:from-orange-600 hover:to-amber-600 transition-all font-semibold text-base shadow-lg shadow-orange-200"
+          >
+            我已阅读，知道了
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- 顶部导航 -->
     <header class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -17,6 +81,10 @@
           <nav class="hidden md:flex items-center gap-8">
             <router-link to="/" class="text-gray-700 hover:text-orange-600 transition-colors font-medium">首页</router-link>
             <router-link to="/order" class="text-gray-600 hover:text-orange-600 transition-colors">我的订单</router-link>
+            <button @click="showContact = true" class="text-gray-600 hover:text-orange-600 transition-colors flex items-center gap-1">
+              <ChatAltIcon class="w-4 h-4" />
+              联系客服
+            </button>
           </nav>
           
           <div class="flex items-center gap-4">
@@ -44,6 +112,10 @@
           <ClipboardListIcon class="w-6 h-6" />
           <span class="text-xs font-medium">订单</span>
         </router-link>
+        <button @click="showContact = true" class="flex flex-col items-center gap-1 text-gray-500">
+          <ChatAltIcon class="w-6 h-6" />
+          <span class="text-xs font-medium">客服</span>
+        </button>
         <router-link to="/profile" class="flex flex-col items-center gap-1 text-gray-500">
           <UserIcon class="w-6 h-6" />
           <span class="text-xs font-medium">我的</span>
@@ -53,6 +125,22 @@
 
     <!-- 主内容区 -->
     <main class="pb-24 md:pb-12">
+      <!-- 公告栏 -->
+      <div class="bg-amber-50 border-b border-amber-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          <div class="flex items-center gap-3">
+            <span class="bg-amber-500 text-white text-xs font-bold px-2 py-1 rounded">公告</span>
+            <div class="overflow-hidden flex-1">
+              <div class="whitespace-nowrap animate-marquee">
+                <span class="text-amber-800 text-sm">
+                  欢迎使用嘉驰校园服务平台！下单后请在30分钟内完成支付，超时订单将自动取消。如有问题请联系客服微信：wxid_jv428py2ftir22
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Hero区域 -->
       <section class="relative overflow-hidden">
         <div class="absolute inset-0 bg-gradient-to-br from-orange-400 via-pink-500 to-purple-600"></div>
@@ -141,7 +229,7 @@
               <h3 class="text-xl font-bold text-gray-800 mb-2">校内包裹配送服务</h3>
               <p class="text-gray-500 text-sm mb-4 leading-relaxed">输入取件码即可下单，送货到宿舍门口</p>
               <div class="flex flex-wrap gap-2 mb-4">
-                <span class="px-2 py-1 bg-orange-50 text-orange-600 text-xs rounded-full">小件 ¥0.1起</span>
+                <span class="px-2 py-1 bg-orange-50 text-orange-600 text-xs rounded-full">小件 ¥{{ prices.express_small_price }}起</span>
                 <span class="px-2 py-1 bg-pink-50 text-pink-600 text-xs rounded-full">加急配送</span>
               </div>
               <div class="flex items-center text-orange-600 font-semibold text-sm group-hover:gap-2 gap-1 transition-all">
@@ -161,7 +249,7 @@
               <h3 class="text-xl font-bold text-gray-800 mb-2">写字服务</h3>
               <p class="text-gray-500 text-sm mb-4 leading-relaxed">多种手写字体可选，专业代写服务</p>
               <div class="flex flex-wrap gap-2 mb-4">
-                <span class="px-2 py-1 bg-purple-50 text-purple-600 text-xs rounded-full">¥1.5/百字</span>
+                <span class="px-2 py-1 bg-purple-50 text-purple-600 text-xs rounded-full">¥{{ prices.handwriting_price }}/百字</span>
                 <span class="px-2 py-1 bg-pink-50 text-pink-600 text-xs rounded-full">多种字体</span>
               </div>
               <div class="flex items-center text-purple-600 font-semibold text-sm group-hover:gap-2 gap-1 transition-all">
@@ -181,8 +269,8 @@
               <h3 class="text-xl font-bold text-gray-800 mb-2">文件打印服务</h3>
               <p class="text-gray-500 text-sm mb-4 leading-relaxed">支持PDF、Word、图片等多种格式</p>
               <div class="flex flex-wrap gap-2 mb-4">
-                <span class="px-2 py-1 bg-blue-50 text-blue-600 text-xs rounded-full">黑白 ¥0.3</span>
-                <span class="px-2 py-1 bg-cyan-50 text-cyan-600 text-xs rounded-full">彩色 ¥0.5</span>
+                <span class="px-2 py-1 bg-blue-50 text-blue-600 text-xs rounded-full">黑白 ¥{{ prices.black_print_price }}</span>
+                <span class="px-2 py-1 bg-cyan-50 text-cyan-600 text-xs rounded-full">彩色 ¥{{ prices.color_print_price }}</span>
               </div>
               <div class="flex items-center text-blue-600 font-semibold text-sm group-hover:gap-2 gap-1 transition-all">
                 <span>立即下单</span>
@@ -199,9 +287,9 @@
                 <AcademicCapIcon class="w-7 h-7 text-white" />
               </div>
               <h3 class="text-xl font-bold text-gray-800 mb-2">课业时长整理服务</h3>
-              <p class="text-gray-500 text-sm mb-4 leading-relaxed">超星、学习通等多平台支持</p>
+              <p class="text-gray-500 text-sm mb-4 leading-relaxed">多平台网课学习辅助服务</p>
               <div class="flex flex-wrap gap-2 mb-4">
-                <span class="px-2 py-1 bg-green-50 text-green-600 text-xs rounded-full">¥1.7/门</span>
+                <span class="px-2 py-1 bg-green-50 text-green-600 text-xs rounded-full">¥{{ prices.course_base_price }}/门</span>
                 <span class="px-2 py-1 bg-emerald-50 text-emerald-600 text-xs rounded-full">100%完成</span>
               </div>
               <div class="flex items-center text-green-600 font-semibold text-sm group-hover:gap-2 gap-1 transition-all">
@@ -267,6 +355,44 @@
                   <span>立即使用</span>
                   <ArrowRightIcon class="w-5 h-5" />
                 </div>
+              </div>
+            </router-link>
+
+            <!-- 图片压缩 -->
+            <router-link to="/tools/image-compress" class="group relative bg-gradient-to-br from-green-50 to-emerald-50 rounded-3xl p-8 shadow-lg shadow-green-100/50 hover:shadow-2xl hover:shadow-green-200/50 transition-all duration-500 hover:-translate-y-2 overflow-hidden border border-green-100">
+              <div class="absolute top-4 right-4 px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full">免费</div>
+              <div class="w-14 h-14 bg-gradient-to-br from-green-400 to-emerald-500 rounded-2xl flex items-center justify-center mb-4">
+                <PhotographIcon class="w-7 h-7 text-white" />
+              </div>
+              <h3 class="text-2xl font-bold text-gray-800 mb-3">图片压缩</h3>
+              <p class="text-gray-500 mb-4">批量压缩图片体积，支持自定义质量和尺寸</p>
+              <div class="flex flex-wrap gap-2 mb-4">
+                <span class="px-3 py-1 bg-green-100 text-green-700 text-sm rounded-full">批量处理</span>
+                <span class="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full">自定义质量</span>
+                <span class="px-3 py-1 bg-emerald-100 text-emerald-700 text-sm rounded-full">本地处理</span>
+              </div>
+              <div class="flex items-center text-green-600 font-semibold group-hover:gap-3 gap-2 transition-all">
+                <span>立即使用</span>
+                <ArrowRightIcon class="w-5 h-5" />
+              </div>
+            </router-link>
+
+            <!-- 图片格式转换 -->
+            <router-link to="/tools/image-convert" class="group relative bg-gradient-to-br from-cyan-50 to-blue-50 rounded-3xl p-8 shadow-lg shadow-cyan-100/50 hover:shadow-2xl hover:shadow-cyan-200/50 transition-all duration-500 hover:-translate-y-2 overflow-hidden border border-cyan-100">
+              <div class="absolute top-4 right-4 px-3 py-1 bg-cyan-500 text-white text-xs font-bold rounded-full">免费</div>
+              <div class="w-14 h-14 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-2xl flex items-center justify-center mb-4">
+                <RefreshIcon class="w-7 h-7 text-white" />
+              </div>
+              <h3 class="text-2xl font-bold text-gray-800 mb-3">图片格式转换</h3>
+              <p class="text-gray-500 mb-4">JPG、PNG、WebP 三种格式互相转换</p>
+              <div class="flex flex-wrap gap-2 mb-4">
+                <span class="px-3 py-1 bg-cyan-100 text-cyan-700 text-sm rounded-full">JPG</span>
+                <span class="px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded-full">PNG</span>
+                <span class="px-3 py-1 bg-teal-100 text-teal-700 text-sm rounded-full">WebP</span>
+              </div>
+              <div class="flex items-center text-cyan-600 font-semibold group-hover:gap-3 gap-2 transition-all">
+                <span>立即使用</span>
+                <ArrowRightIcon class="w-5 h-5" />
               </div>
             </router-link>
           </div>
@@ -365,31 +491,142 @@
             <ul class="space-y-2 text-sm">
               <li><router-link to="/order" class="hover:text-orange-400 transition-colors">我的订单</router-link></li>
               <li><router-link to="/profile" class="hover:text-orange-400 transition-colors">个人中心</router-link></li>
+              <li><button @click="showContact = true" class="hover:text-orange-400 transition-colors">联系客服</button></li>
             </ul>
           </div>
         </div>
         
         <div class="border-t border-gray-800 pt-8 text-center text-sm">
-          <p>© 2024 校园好帮手 版权所有</p>
+          <p>© 2026 嘉驰校园服务 版权所有</p>
           <p class="mt-2 text-gray-500">仅供学习交流使用</p>
         </div>
       </div>
     </footer>
+
+    <!-- 联系客服弹窗 -->
+    <div v-if="showContact" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4" @click.self="showContact = false">
+      <div class="bg-white rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden">
+        <div class="bg-gradient-to-r from-green-500 to-emerald-600 p-6 text-center">
+          <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3">
+            <ChatAltIcon class="w-8 h-8 text-white" />
+          </div>
+          <h3 class="text-xl font-bold text-white">联系客服</h3>
+          <p class="text-green-100 text-sm mt-1">有任何问题，随时联系我们</p>
+        </div>
+        <div class="p-6 space-y-5">
+          <div class="bg-gray-50 rounded-2xl p-4">
+            <p class="text-gray-500 text-sm mb-2">微信客服</p>
+            <div class="flex items-center justify-between">
+              <span class="text-lg font-bold text-gray-800 font-mono">wxid_jv428py2ftir22</span>
+              <button @click="copyWechat" class="px-3 py-1.5 bg-green-500 text-white text-sm rounded-lg hover:bg-green-600 transition-colors">
+                {{ copied ? '已复制' : '复制' }}
+              </button>
+            </div>
+            <p class="text-xs text-gray-400 mt-2">复制微信号后，在微信中搜索添加</p>
+          </div>
+          <div class="bg-orange-50 rounded-2xl p-4">
+            <p class="text-sm text-orange-700">
+              <strong>服务时间：</strong>每天 8:00 - 22:00<br/>
+              <strong>响应时效：</strong>一般30分钟内回复
+            </p>
+          </div>
+          <button @click="showContact = false" class="w-full py-3 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 transition-colors">
+            关闭
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 重要公告弹窗 -->
+    <div v-if="showAnnouncement" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6 border-2 border-orange-500">
+        <div class="text-center mb-4">
+          <div class="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
+            <ExclamationIcon class="w-10 h-10 text-orange-600" />
+          </div>
+          <h2 class="text-xl font-bold text-orange-600">重要公告</h2>
+          <p class="text-sm text-gray-500 mt-1">下单前必看，请仔细阅读</p>
+        </div>
+        
+        <div class="bg-orange-50 rounded-xl p-4 mb-5 border border-orange-200">
+          <p class="text-gray-800 leading-relaxed text-sm">
+            下单时请保存付款记录，并上传截图。后台审核通过后，我们会火速处理您的单子。
+          </p>
+          <p class="text-red-600 font-medium mt-3 text-sm">
+            ⚠️ 千万不要多付或少付，否则后台识别不成功！
+          </p>
+          <p class="text-gray-600 mt-3 text-sm">
+            有疑问请联系客服。
+          </p>
+        </div>
+        
+        <button @click="closeAnnouncement" class="w-full py-3 bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all">
+          我已阅读，知道了
+        </button>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { HomeIcon, ClipboardListIcon, UserIcon, TruckIcon, PencilIcon, SparklesIcon, ArrowRightIcon, ClockIcon, ShieldCheckIcon, HeartIcon, DocumentDuplicateIcon, CameraIcon, PrinterIcon, AcademicCapIcon } from '@heroicons/vue/outline'
+import { HomeIcon, ClipboardListIcon, UserIcon, TruckIcon, PencilIcon, SparklesIcon, ArrowRightIcon, ClockIcon, ShieldCheckIcon, HeartIcon, DocumentDuplicateIcon, CameraIcon, PrinterIcon, AcademicCapIcon, ChatAltIcon, PhotographIcon, RefreshIcon, ExclamationIcon } from '@heroicons/vue/outline'
+import { publicApi } from '@/api'
 
 const visitorPhone = ref('')
+const showContact = ref(false)
+const copied = ref(false)
+const showAnnouncement = ref(false)
 
-onMounted(() => {
-  // 获取本地存储的手机号
-  visitorPhone.value = localStorage.getItem('visitor_phone') || ''
+function closeAnnouncement() {
+  showAnnouncement.value = false
+  localStorage.setItem('announcement_read', 'true')
+}
+
+async function copyWechat() {
+  try {
+    await navigator.clipboard.writeText('wxid_jv428py2ftir22')
+    copied.value = true
+    setTimeout(() => { copied.value = false }, 2000)
+  } catch {
+    // 降级方案
+    const input = document.createElement('input')
+    input.value = 'wxid_jv428py2ftir22'
+    document.body.appendChild(input)
+    input.select()
+    document.execCommand('copy')
+    document.body.removeChild(input)
+    copied.value = true
+    setTimeout(() => { copied.value = false }, 2000)
+  }
+}
+
+const prices = ref({
+  express_small_price: '0.1',
+  express_large_price: '2.5',
+  black_print_price: '0.3',
+  color_print_price: '0.5',
+  course_base_price: '1.7',
+  handwriting_price: '1.5'
 })
 
-// 格式化手机号显示
+onMounted(async () => {
+  visitorPhone.value = localStorage.getItem('visitor_phone') || ''
+  
+  // 检查是否已阅读公告（每次访问都显示，除非用户主动关闭）
+  const announcementRead = localStorage.getItem('announcement_read')
+  if (!announcementRead) {
+    showAnnouncement.value = true
+  }
+  
+  try {
+    const res: any = await publicApi.getServicePrices()
+    if (res.code === 0 && res.data) {
+      prices.value = { ...prices.value, ...res.data }
+    }
+  } catch (e) {}
+})
+
 function formatPhone(phone: string) {
   if (phone.length === 11) {
     return phone.substring(0, 3) + '****' + phone.substring(7)

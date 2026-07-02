@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>我的订单 - 嘉驰校园服务</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="app">
+  <header class="header">
+    <button class="btn-back" onclick="goHome()">← 返回</button>
+    <div class="title">我的订单</div>
+    <div style="width:50px"></div>
+  </header>
+
+  <div class="phone-input-bar">
+    <input type="tel" id="queryPhone" placeholder="输入手机号查询订单">
+    <button class="btn-primary" onclick="queryOrders()">查询</button>
+  </div>
+
+  <div class="order-tabs">
+    <div class="tab active" onclick="filterOrders('all')">全部</div>
+    <div class="tab" onclick="filterOrders('pending')">待支付</div>
+    <div class="tab" onclick="filterOrders('paid')">进行中</div>
+    <div class="tab" onclick="filterOrders('completed')">已完成</div>
+  </div>
+
+  <div class="order-list" id="orderList">
+    <div class="empty-state">
+      <div class="empty-icon">📋</div>
+      <p>暂无订单</p>
+      <button class="btn-primary" onclick="goHome()">去下单</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+initMyOrdersPage();
+</script>
+</body>
+</html>

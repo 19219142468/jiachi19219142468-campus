@@ -129,7 +129,7 @@
             </p>
 
             <div class="bg-gradient-to-r from-orange-50 to-amber-50 border-2 border-orange-200 rounded-xl p-4 mb-4 text-left">
-              <p class="font-bold text-orange-800 mb-3 text-lg">🎯 支付步骤：</p>
+              <p class="font-bold text-orange-800 mb-3 text-lg">支付步骤：</p>
               <ol class="text-sm text-orange-700 space-y-2">
                 <li class="flex items-start gap-2">
                   <span class="bg-orange-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">1</span>
@@ -148,21 +148,43 @@
                 </li>
                 <li class="flex items-start gap-2">
                   <span class="bg-orange-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">4</span>
-                  <span>转账完成后，点击下方<strong>"我已完成转账"</strong>按钮</span>
+                  <span>转账完成后，<strong>截图保存转账成功页面</strong>，点击下方按钮上传截图</span>
                 </li>
               </ol>
             </div>
 
+            <!-- 转账截图上传 -->
+            <div class="bg-white border-2 border-dashed rounded-xl p-4 mb-4" :class="proofImage ? 'border-green-300 bg-green-50/50' : 'border-gray-300'">
+              <p class="text-sm font-medium text-gray-700 mb-2">上传转账截图 <span class="text-red-500">*必填</span></p>
+              <div v-if="!proofImage" class="text-center py-4">
+                <label class="cursor-pointer inline-flex flex-col items-center gap-2">
+                  <div class="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center">
+                    <CameraIcon class="w-8 h-8 text-gray-400" />
+                  </div>
+                  <span class="text-sm text-gray-500">点击上传转账成功截图</span>
+                  <span class="text-xs text-gray-400">支持拍照或相册选取</span>
+                  <input type="file" accept="image/*" @change="handleProofUpload" class="hidden" />
+                </label>
+              </div>
+              <div v-else class="relative">
+                <img :src="proofImage" alt="转账截图" class="w-full max-h-48 object-contain rounded-lg mx-auto" />
+                <button @click="proofImage = ''" class="absolute top-2 right-2 w-8 h-8 bg-black/50 text-white rounded-full flex items-center justify-center hover:bg-black/70">
+                  <XIcon class="w-5 h-5" />
+                </button>
+                <p class="text-center text-sm text-green-600 mt-2 font-medium">截图已上传</p>
+              </div>
+            </div>
+
             <button 
               @click="markAsPaid"
-              :disabled="submitting"
+              :disabled="submitting || !proofImage"
               class="w-full py-3 bg-green-500 text-white font-medium rounded-xl hover:bg-green-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {{ submitting ? '提交中...' : '✓ 我已完成转账' }}
             </button>
 
             <p class="text-xs text-gray-400 mt-4">
-              系统将自动核验付款状态，无需人工确认，核验通过订单立即生效
+              提交后管理员将核验付款，确认收款后订单立即生效
             </p>
           </div>
         </div>
@@ -202,6 +224,7 @@
         </div>
       </div>
     </main>
+    <MobileBottomNav />
   </div>
 </template>
 
@@ -210,7 +233,9 @@ import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { orderApi, publicApi } from '@/api'
 import { useUserStore } from '@/stores/user'
-import { ChevronLeftIcon, CheckCircleIcon, ClockIcon, PrinterIcon, AcademicCapIcon, TruckIcon, PencilIcon } from '@heroicons/vue/outline'
+import { ChevronLeftIcon, CheckCircleIcon, ClockIcon, PrinterIcon, AcademicCapIcon, TruckIcon, PencilIcon, CameraIcon, XIcon } from '@heroicons/vue/outline'
+import MobileBottomNav from '@/components/MobileBottomNav.vue'
+import { formatMoney, formatTime } from '@/utils/format'
 
 const route = useRoute()
 const router = useRouter()
@@ -220,6 +245,7 @@ const order = ref<any>(null)
 const selectedMethod = ref('')
 const submitting = ref(false)
 const countdown = ref(5)
+const proofImage = ref('')
 const qrcode = ref<any>({
   alipay_qrcode: '',
   wechat_qrcode: '',
@@ -306,12 +332,31 @@ function selectMethod(method: string) {
   selectedMethod.value = method
 }
 
+function handleProofUpload(e: Event) {
+  const target = e.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (!file) return
+  if (file.size > 5 * 1024 * 1024) {
+    alert('图片不能超过5MB')
+    return
+  }
+  const reader = new FileReader()
+  reader.onload = (ev) => {
+    proofImage.value = ev.target?.result as string
+  }
+  reader.readAsDataURL(file)
+}
+
 async function markAsPaid() {
   if (!order.value) return
+  if (!proofImage.value) {
+    alert('请先上传转账截图')
+    return
+  }
   
   submitting.value = true
   try {
-    const res = await orderApi.confirmTransfer(Number(route.params.orderId))
+    const res = await orderApi.confirmTransfer(Number(route.params.orderId), proofImage.value)
     if (res.code === 0) {
       order.value.status = 'pending_confirm'
       startCountdown()

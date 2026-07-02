@@ -209,15 +209,17 @@
         </ul>
       </div>
     </main>
+    <MobileBottomNav />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { orderApi } from '@/api'
+import { orderApi, publicApi } from '@/api'
 import { ensureLoggedIn } from '@/utils/auth-helper'
 import { ChevronLeftIcon, MinusIcon, PlusIcon, InformationCircleIcon, CheckCircleIcon } from '@heroicons/vue/outline'
+import MobileBottomNav from '@/components/MobileBottomNav.vue'
 
 const router = useRouter()
 const loading = ref(false)
@@ -245,11 +247,11 @@ const form = ref({
   phone: ''
 })
 
-const pricePer100Words = 1.5
+const pricePer100Words = ref(1.5)
 
 const basePrice = computed(() => {
   const hundreds = Math.ceil(form.value.wordCount / 100)
-  return hundreds * pricePer100Words
+  return hundreds * pricePer100Words.value
 })
 
 const totalPrice = computed(() => {
@@ -259,7 +261,15 @@ const totalPrice = computed(() => {
   return basePrice.value
 })
 
-onMounted(() => {
+onMounted(async () => {
+  // 从后端拉取价格配置
+  try {
+    const res: any = await publicApi.getServicePrices()
+    if (res.code === 0 && res.data) {
+      if (res.data.handwriting_price) pricePer100Words.value = parseFloat(res.data.handwriting_price)
+    }
+  } catch (e) {}
+
   // 如果有保存的手机号，自动填充
   const savedPhone = localStorage.getItem('visitor_phone')
   if (savedPhone) {

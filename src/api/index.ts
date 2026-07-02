@@ -1,4 +1,4 @@
-﻿import axios from 'axios'
+import axios from 'axios'
 import type { ApiResponse } from '@/types'
 
 const api = axios.create({
@@ -62,6 +62,26 @@ export const publicApi = {
   getPaymentQrcode: () => api.get<ApiResponse>('/payment/qrcode')
 }
 
+// 通用文件上传（base64方式）
+export const uploadApi = {
+  uploadFile: (file: File) => {
+    return new Promise<any>((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = async (e) => {
+        try {
+          const base64 = e.target?.result as string
+          const res = await api.post<ApiResponse>('/upload', { file: base64, filename: file.name })
+          resolve(res)
+        } catch (err) {
+          reject(err)
+        }
+      }
+      reader.onerror = () => reject(new Error('文件读取失败'))
+      reader.readAsDataURL(file)
+    })
+  }
+}
+
 export const userApi = {
   getProfile: () => api.get<ApiResponse>('/user/profile'),
   updateProfile: (data: { nickname?: string; avatar?: string }) => 
@@ -86,7 +106,9 @@ export const orderApi = {
   getOrderDetailByPhone: (id: number, phone: string) => 
     api.get<ApiResponse>(`/orders/phone/${id}`, { params: { phone } }),
   cancelOrder: (id: number) => api.put<ApiResponse>(`/orders/${id}/cancel`),
-  confirmTransfer: (id: number) => api.put<ApiResponse>(`/orders/${id}/confirm-transfer`)
+  confirmTransfer: (id: number, proofImage?: string) => api.put<ApiResponse>(`/orders/${id}/confirm-transfer`, { proof_image: proofImage }),
+  submitReview: (id: number, rating: number, content: string) =>
+    api.post<ApiResponse>(`/orders/${id}/review`, { rating, content })
 }
 
 export const payApi = {
@@ -133,6 +155,11 @@ export const superAdminApi = {
   login: (phone: string) =>
     api.post<ApiResponse>('/super-admin/login', { phone }),
   getStats: () => api.get<ApiResponse>('/super-admin/stats'),
+  getOrders: (params?: any) => api.get<ApiResponse>('/super-admin/orders', { params }),
+  getOrderDetail: (id: number) => api.get<ApiResponse>(`/super-admin/orders/${id}/detail`),
+  assignOrder: (id: number, agentId: number) =>
+    api.put<ApiResponse>(`/super-admin/orders/${id}/assign`, { agent_id: agentId }),
+  reclaimOrder: (id: number) => api.put<ApiResponse>(`/super-admin/orders/${id}/reclaim`),
   getAgents: (params?: any) => api.get<ApiResponse>('/super-admin/agents', { params }),
   createAgent: (data: any) => api.post<ApiResponse>('/super-admin/agents', data),
   updateAgent: (id: number, data: any) => api.put<ApiResponse>(`/super-admin/agents/${id}`, data),
@@ -155,7 +182,17 @@ export const superAdminApi = {
   uploadQrcode: (image: string, type: 'alipay' | 'wechat') =>
     api.post<ApiResponse>('/super-admin/upload-qrcode', { image, type }),
   // 支付流水
-  getPaymentRecords: (params?: any) => api.get<ApiResponse>('/super-admin/payment-records', { params })
+  getPaymentRecords: (params?: any) => api.get<ApiResponse>('/super-admin/payment-records', { params }),
+  // 用户管理
+  getUsers: (params?: any) => api.get<ApiResponse>('/super-admin/users', { params }),
+  updateUserStatus: (id: number, status: number) =>
+    api.put<ApiResponse>(`/super-admin/users/${id}/status`, { status }),
+  // 对账汇总
+  getDailySummary: (params?: any) => api.get<ApiResponse>('/super-admin/finance/daily-summary', { params }),
+  // 操作日志
+  getLogs: (params?: any) => api.get<ApiResponse>('/super-admin/logs', { params }),
+  // 评价管理
+  getReviews: (params?: any) => api.get<ApiResponse>('/super-admin/reviews', { params })
 }
 
 export const agentApi = {

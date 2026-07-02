@@ -26,7 +26,7 @@
       </div>
       <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
         <p class="text-gray-500 text-sm">总流水</p>
-        <p class="text-2xl font-bold text-amber-600 mt-1">¥{{ totalIncome.toFixed(2) }}</p>
+        <p class="text-2xl font-bold text-amber-600 mt-1">¥{{ formatMoney(totalIncome) }}</p>
       </div>
     </div>
 
@@ -69,7 +69,7 @@
                 </div>
               </td>
               <td class="px-6 py-4 text-sm font-medium text-gray-800">{{ agent.total_orders || 0 }}</td>
-              <td class="px-6 py-4 text-sm font-medium text-green-600">¥{{ (agent.total_income || 0).toFixed(2) }}</td>
+              <td class="px-6 py-4 text-sm font-medium text-green-600">¥{{ formatMoney(agent.total_income) }}</td>
               <td class="px-6 py-4 text-sm">
                 <span :class="['px-2 py-1 rounded-full text-xs', agent.status === 1 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700']">
                   {{ agent.status === 1 ? '正常' : '禁用' }}
@@ -214,15 +214,15 @@
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
               <div class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-4">
                 <p class="text-gray-500 text-sm">今日收入</p>
-                <p class="text-2xl font-bold text-orange-600 mt-1">¥{{ statsData.todayIncome.toFixed(2) }}</p>
+                <p class="text-2xl font-bold text-orange-600 mt-1">¥{{ formatMoney(statsData.todayIncome) }}</p>
               </div>
               <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4">
                 <p class="text-gray-500 text-sm">本月收入</p>
-                <p class="text-2xl font-bold text-blue-600 mt-1">¥{{ statsData.monthIncome.toFixed(2) }}</p>
+                <p class="text-2xl font-bold text-blue-600 mt-1">¥{{ formatMoney(statsData.monthIncome) }}</p>
               </div>
               <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4">
                 <p class="text-gray-500 text-sm">累计收入</p>
-                <p class="text-2xl font-bold text-green-600 mt-1">¥{{ statsData.totalIncome.toFixed(2) }}</p>
+                <p class="text-2xl font-bold text-green-600 mt-1">¥{{ formatMoney(statsData.totalIncome) }}</p>
               </div>
               <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4">
                 <p class="text-gray-500 text-sm">完成订单</p>
@@ -279,7 +279,7 @@
                     <p class="font-medium text-gray-800">{{ item.date }}</p>
                     <p class="text-xs text-gray-500">{{ item.orders }}笔订单</p>
                   </div>
-                  <p class="text-lg font-bold text-green-600">+¥{{ item.income.toFixed(2) }}</p>
+                  <p class="text-lg font-bold text-green-600">+¥{{ formatMoney(item.income) }}</p>
                 </div>
               </div>
             </div>
@@ -301,6 +301,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
+import { formatMoney } from '@/utils/format'
 import { 
   PlusIcon, 
   XIcon, 

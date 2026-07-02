@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div>
     <div class="flex items-center justify-between mb-6">
       <h1 class="text-2xl font-bold text-gray-800">我的钱包</h1>
@@ -6,15 +6,15 @@
 
     <div class="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-6 text-white mb-6">
       <p class="text-white/80 text-sm">可提现余额</p>
-      <p class="text-4xl font-bold mt-2">¥{{ balance.toFixed(2) }}</p>
+      <p class="text-4xl font-bold mt-2">¥{{ formatMoney(balance) }}</p>
       <div class="flex gap-4 mt-4">
         <div>
           <p class="text-white/70 text-xs">累计收入</p>
-          <p class="text-lg font-semibold">¥{{ totalIncome.toFixed(2) }}</p>
+          <p class="text-lg font-semibold">¥{{ formatMoney(totalIncome) }}</p>
         </div>
         <div>
           <p class="text-white/70 text-xs">累计提现</p>
-          <p class="text-lg font-semibold">¥{{ totalWithdraw.toFixed(2) }}</p>
+          <p class="text-lg font-semibold">¥{{ formatMoney(totalWithdraw) }}</p>
         </div>
       </div>
       <button 
@@ -56,11 +56,11 @@
               </div>
               <div>
                 <p class="font-medium text-gray-800">{{ log.description }}</p>
-                <p class="text-xs text-gray-500">{{ formatDate(log.created_at) }}</p>
+                <p class="text-xs text-gray-500">{{ formatTime(log.created_at) }}</p>
               </div>
             </div>
             <p :class="['font-semibold', log.amount > 0 ? 'text-green-600' : 'text-red-600']">
-              {{ log.amount > 0 ? '+' : '' }}¥{{ log.amount.toFixed(2) }}
+              {{ log.amount > 0 ? '+' : '' }}¥{{ formatMoney(log.amount) }}
             </p>
           </div>
         </div>
@@ -83,7 +83,7 @@
                   {{ withdrawStatusLabels[w.status] }}
                 </span>
               </div>
-              <p class="text-lg font-bold text-gray-800">¥{{ w.amount.toFixed(2) }}</p>
+              <p class="text-lg font-bold text-gray-800">¥{{ formatMoney(w.amount) }}</p>
             </div>
             <div class="text-sm text-gray-500 space-y-1">
               <p v-if="w.withdraw_method === 'alipay'">支付宝账号：{{ w.alipay_account }}</p>
@@ -109,7 +109,7 @@
         <div class="p-6 space-y-4">
           <div class="p-4 bg-emerald-50 rounded-xl">
             <p class="text-sm text-gray-600">可提现余额</p>
-            <p class="text-2xl font-bold text-emerald-600">¥{{ balance.toFixed(2) }}</p>
+            <p class="text-2xl font-bold text-emerald-600">¥{{ formatMoney(balance) }}</p>
           </div>
 
           <div>
@@ -173,7 +173,7 @@
               />
               <button 
                 type="button"
-                @click="withdrawForm.amount = balance.toFixed(2)"
+                @click="withdrawForm.amount = formatMoney(balance)"
                 class="absolute right-2 top-1/2 -translate-y-1/2 text-emerald-600 text-sm hover:text-emerald-700"
               >
                 全部提现
@@ -201,6 +201,7 @@
 import { ref, onMounted } from 'vue'
 import { XIcon } from '@heroicons/vue/outline'
 import { agentApi } from '@/api'
+import { formatMoney, formatTime } from '@/utils/format'
 
 const balance = ref(0)
 const totalIncome = ref(0)
@@ -238,12 +239,6 @@ function withdrawStatusClass(status: string) {
     rejected: 'bg-red-100 text-red-700'
   }
   return classes[status] || 'bg-gray-100 text-gray-700'
-}
-
-function formatDate(dateStr: string) {
-  if (!dateStr) return ''
-  const d = new Date(dateStr)
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
 }
 
 function getAuthHeaders() {

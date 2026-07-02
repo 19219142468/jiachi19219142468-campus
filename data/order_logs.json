@@ -178,5 +178,374 @@
     "action": "confirm_payment",
     "remark": "管理员确认收款",
     "created_at": "2026-06-30T14:43:15.269Z"
+  },
+  {
+    "id": 21,
+    "order_id": 15,
+    "operator_type": "user",
+    "operator_id": 1,
+    "action": "transfer_submitted",
+    "remark": "用户提交转账，等待确认",
+    "created_at": "2026-06-30T17:23:47.132Z"
+  },
+  {
+    "id": 22,
+    "order_id": 16,
+    "operator_type": "user",
+    "operator_id": 1,
+    "action": "transfer_submitted",
+    "remark": "用户提交转账，等待确认",
+    "created_at": "2026-06-30T17:24:34.803Z"
+  },
+  {
+    "id": 23,
+    "order_id": 17,
+    "operator_type": "user",
+    "operator_id": 1,
+    "action": "transfer_submitted",
+    "remark": "用户提交转账，等待确认",
+    "created_at": "2026-06-30T17:26:26.725Z"
+  },
+  {
+    "id": 24,
+    "order_id": 17,
+    "operator_type": "super_admin",
+    "operator_id": 2,
+    "action": "confirm_payment",
+    "remark": "管理员确认收款",
+    "created_at": "2026-06-30T17:39:03.600Z"
+  },
+  {
+    "id": 25,
+    "order_id": 16,
+    "operator_type": "super_admin",
+    "operator_id": 2,
+    "action": "confirm_payment",
+    "remark": "管理员确认收款",
+    "created_at": "2026-06-30T17:39:34.874Z"
+  },
+  {
+    "id": 26,
+    "order_id": 15,
+    "operator_type": "super_admin",
+    "operator_id": 2,
+    "action": "confirm_payment",
+    "remark": "管理员确认收款",
+    "created_at": "2026-06-30T17:44:23.156Z"
+  },
+  {
+    "id": 27,
+    "order_id": 19,
+    "operator_type": "user",
+    "operator_id": 4,
+    "action": "transfer_submitted",
+    "remark": "用户提交转账，等待自动核验",
+    "created_at": "2026-07-01T15:29:15.469Z"
+  },
+  {
+    "id": 28,
+    "order_id": 21,
+    "operator_type": "user",
+    "operator_id": 1,
+    "action": "transfer_submitted",
+    "remark": "用户提交转账，等待自动核验",
+    "created_at": "2026-07-02T07:51:02.572Z"
+  },
+  {
+    "id": 29,
+    "order_id": 22,
+    "operator_type": "user",
+    "operator_id": 1,
+    "action": "transfer_submitted",
+    "remark": "用户提交转账，等待自动核验",
+    "created_at": "2026-07-02T07:51:31.867Z"
+  },
+  {
+    "id": 30,
+    "order_id": 22,
+    "operator_type": "super_admin",
+    "operator_id": 2,
+    "action": "confirm_payment",
+    "remark": "管理员确认收款",
+    "created_at": "2026-07-02T10:02:14.336Z"
+  },
+  {
+    "id": 31,
+    "order_id": 21,
+    "operator_type": "super_admin",
+    "operator_id": 2,
+    "action": "confirm_payment",
+    "remark": "管理员确认收款",
+    "created_at": "2026-07-02T10:02:22.747Z"
+  },
+  {
+    "id": 32,
+    "order_id": 19,
+    "operator_type": "super_admin",
+    "operator_id": 2,
+    "action": "confirm_payment",
+    "remark": "管理员确认收款",
+    "created_at": "2026-07-02T10:02:29.721Z"
+  },
+  {
+    "id": 33,
+    "order_id": 21,
+    "operator_type": "admin",
+    "operator_id": 2,
+    "action": "assign",
+    "remark": "分配给业务员：嘉驰",
+    "created_at": "2026-07-02T10:02:49.740Z"
+  },
+  {
+    "id": 34,
+    "order_id": 22,
+    "operator_type": "admin",
+    "operator_id": 2,
+    "action": "assign",
+    "remark": "分配给业务员：嘉驰",
+    "created_at": "2026-07-02T10:02:55.994Z"
+  },
+  {
+    "id": 35,
+    "order_id": 19,
+    "operator_type": "admin",
+    "operator_id": 2,
+    "action": "assign",
+    "remark": "分配给业务员：嘉驰",
+    "created_at": "2026-07-02T10:03:04.866Z"
+  },
+  {
+    "id": 36,
+    "order_id": 17,
+    "operator_type": "admin",
+    "operator_id": 2,
+    "action": "assign",
+    "remark": "分配给业务员：嘉驰",
+    "created_at": "2026-07-02T10:03:09.802Z"
+  },
+  {
+    "id": 37,
+    "order_id": 16,
+    "operator_type": "admin",
+    "operator_id": 2,
+    "action": "assign",
+    "remark": "分配给业务员：嘉驰",
+    "created_at": "2026-07-02T10:03:14.411Z"
+  },
+  {
+    "id": 38,
+    "order_id": 15,
+    "operator_type": "agent",
+    "operator_id": 2,
+    "action": "accept",
+    "remark": "业务员接单",
+    "created_at": "2026-07-02T10:03:22.084Z"
+  },
+  {
+    "id": 39,
+    "order_id": 8,
+    "operator_type": "agent",
+    "operator_id": 2,
+    "action": "accept",
+    "remark": "业务员接单",
+    "created_at": "2026-07-02T10:03:29.245Z"
+  },
+  {
+    "id": 40,
+    "order_id": 11,
+    "operator_type": "agent",
+    "operator_id": 2,
+    "action": "accept",
+    "remark": "业务员接单",
+    "created_at": "2026-07-02T10:03:35.046Z"
+  },
+  {
+    "id": 41,
+    "order_id": 7,
+    "operator_type": "agent",
+    "operator_id": 2,
+    "action": "accept",
+    "remark": "业务员接单",
+    "created_at": "2026-07-02T10:03:37.102Z"
+  },
+  {
+    "id": 42,
+    "order_id": 6,
+    "operator_type": "agent",
+    "operator_id": 2,
+    "action": "accept",
+    "remark": "业务员接单",
+    "created_at": "2026-07-02T10:03:39.150Z"
+  },
+  {
+    "id": 43,
+    "order_id": 5,
+    "operator_type": "agent",
+    "operator_id": 2,
+    "action": "accept",
+    "remark": "业务员接单",
+    "created_at": "2026-07-02T10:03:41.166Z"
+  },
+  {
+    "id": 44,
+    "order_id": 4,
+    "operator_type": "agent",
+    "operator_id": 2,
+    "action": "accept",
+    "remark": "业务员接单",
+    "created_at": "2026-07-02T10:03:43.029Z"
+  },
+  {
+    "id": 45,
+    "order_id": 22,
+    "operator_type": "agent",
+    "operator_id": 2,
+    "action": "process",
+    "remark": "开始处理",
+    "created_at": "2026-07-02T10:03:50.012Z"
+  },
+  {
+    "id": 46,
+    "order_id": 22,
+    "operator_type": "agent",
+    "operator_id": 2,
+    "action": "complete",
+    "remark": "订单已完成",
+    "created_at": "2026-07-02T10:03:56.621Z"
+  },
+  {
+    "id": 47,
+    "order_id": 21,
+    "operator_type": "agent",
+    "operator_id": 2,
+    "action": "process",
+    "remark": "开始处理",
+    "created_at": "2026-07-02T10:03:59.925Z"
+  },
+  {
+    "id": 48,
+    "order_id": 21,
+    "operator_type": "agent",
+    "operator_id": 2,
+    "action": "complete",
+    "remark": "订单已完成",
+    "created_at": "2026-07-02T10:04:02.709Z"
+  },
+  {
+    "id": 49,
+    "order_id": 19,
+    "operator_type": "agent",
+    "operator_id": 2,
+    "action": "process",
+    "remark": "开始处理",
+    "created_at": "2026-07-02T10:04:06.882Z"
+  },
+  {
+    "id": 50,
+    "order_id": 19,
+    "operator_type": "agent",
+    "operator_id": 2,
+    "action": "complete",
+    "remark": "订单已完成",
+    "created_at": "2026-07-02T10:04:10.158Z"
+  },
+  {
+    "id": 51,
+    "order_id": 17,
+    "operator_type": "agent",
+    "operator_id": 2,
+    "action": "process",
+    "remark": "开始处理",
+    "created_at": "2026-07-02T10:04:13.910Z"
+  },
+  {
+    "id": 52,
+    "order_id": 16,
+    "operator_type": "agent",
+    "operator_id": 2,
+    "action": "process",
+    "remark": "开始处理",
+    "created_at": "2026-07-02T10:04:17.349Z"
+  },
+  {
+    "id": 53,
+    "order_id": 17,
+    "operator_type": "agent",
+    "operator_id": 2,
+    "action": "complete",
+    "remark": "订单已完成",
+    "created_at": "2026-07-02T10:04:20.101Z"
+  },
+  {
+    "id": 54,
+    "order_id": 16,
+    "operator_type": "agent",
+    "operator_id": 2,
+    "action": "complete",
+    "remark": "订单已完成",
+    "created_at": "2026-07-02T10:04:23.070Z"
+  },
+  {
+    "id": 55,
+    "order_id": 15,
+    "operator_type": "agent",
+    "operator_id": 2,
+    "action": "complete",
+    "remark": "订单已完成",
+    "created_at": "2026-07-02T10:04:26.334Z"
+  },
+  {
+    "id": 56,
+    "order_id": 11,
+    "operator_type": "agent",
+    "operator_id": 2,
+    "action": "complete",
+    "remark": "订单已完成",
+    "created_at": "2026-07-02T10:04:30.407Z"
+  },
+  {
+    "id": 57,
+    "order_id": 8,
+    "operator_type": "agent",
+    "operator_id": 2,
+    "action": "complete",
+    "remark": "订单已完成",
+    "created_at": "2026-07-02T10:04:33.022Z"
+  },
+  {
+    "id": 58,
+    "order_id": 7,
+    "operator_type": "agent",
+    "operator_id": 2,
+    "action": "complete",
+    "remark": "订单已完成",
+    "created_at": "2026-07-02T10:04:36.198Z"
+  },
+  {
+    "id": 59,
+    "order_id": 6,
+    "operator_type": "agent",
+    "operator_id": 2,
+    "action": "complete",
+    "remark": "订单已完成",
+    "created_at": "2026-07-02T10:04:39.944Z"
+  },
+  {
+    "id": 60,
+    "order_id": 5,
+    "operator_type": "agent",
+    "operator_id": 2,
+    "action": "complete",
+    "remark": "订单已完成",
+    "created_at": "2026-07-02T10:04:43.175Z"
+  },
+  {
+    "id": 61,
+    "order_id": 4,
+    "operator_type": "agent",
+    "operator_id": 2,
+    "action": "complete",
+    "remark": "订单已完成",
+    "created_at": "2026-07-02T10:04:46.271Z"
   }
 ]

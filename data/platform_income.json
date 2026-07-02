@@ -18,5 +18,125 @@
     "total_amount": 7.5,
     "description": "订单抽成 - 文案代写",
     "created_at": "2026-06-29T17:48:38.257Z"
+  },
+  {
+    "id": 3,
+    "order_id": 22,
+    "order_type": "handwriting",
+    "agent_id": 2,
+    "amount": 0.75,
+    "total_amount": 7.5,
+    "description": "订单抽成 - 文案代写",
+    "created_at": "2026-07-02T10:03:56.620Z"
+  },
+  {
+    "id": 4,
+    "order_id": 21,
+    "order_type": "express",
+    "agent_id": 2,
+    "amount": 0.01,
+    "total_amount": 0.1,
+    "description": "订单抽成 - 校内包裹配送服务",
+    "created_at": "2026-07-02T10:04:02.708Z"
+  },
+  {
+    "id": 5,
+    "order_id": 19,
+    "order_type": "express",
+    "agent_id": 2,
+    "amount": 0.01,
+    "total_amount": 0.1,
+    "description": "订单抽成 - 校内包裹配送服务",
+    "created_at": "2026-07-02T10:04:10.156Z"
+  },
+  {
+    "id": 6,
+    "order_id": 17,
+    "order_type": "handwriting",
+    "agent_id": 2,
+    "amount": 0.75,
+    "total_amount": 7.5,
+    "description": "订单抽成 - 文案代写",
+    "created_at": "2026-07-02T10:04:20.100Z"
+  },
+  {
+    "id": 7,
+    "order_id": 16,
+    "order_type": "express",
+    "agent_id": 2,
+    "amount": 0.01,
+    "total_amount": 0.1,
+    "description": "订单抽成 - 校内包裹配送服务",
+    "created_at": "2026-07-02T10:04:23.069Z"
+  },
+  {
+    "id": 8,
+    "order_id": 15,
+    "order_type": "express",
+    "agent_id": 2,
+    "amount": 0.01,
+    "total_amount": 0.1,
+    "description": "订单抽成 - 校内包裹配送服务",
+    "created_at": "2026-07-02T10:04:26.332Z"
+  },
+  {
+    "id": 9,
+    "order_id": 11,
+    "order_type": "course",
+    "agent_id": 2,
+    "amount": 0.2,
+    "total_amount": 2,
+    "description": "订单抽成 - 课业时长整理服务",
+    "created_at": "2026-07-02T10:04:30.405Z"
+  },
+  {
+    "id": 10,
+    "order_id": 8,
+    "order_type": "express",
+    "agent_id": 2,
+    "amount": 0.01,
+    "total_amount": 0.1,
+    "description": "订单抽成 - 校内包裹配送服务",
+    "created_at": "2026-07-02T10:04:33.021Z"
+  },
+  {
+    "id": 11,
+    "order_id": 7,
+    "order_type": "express",
+    "agent_id": 2,
+    "amount": 0.01,
+    "total_amount": 0.1,
+    "description": "订单抽成 - 校内包裹配送服务",
+    "created_at": "2026-07-02T10:04:36.196Z"
+  },
+  {
+    "id": 12,
+    "order_id": 6,
+    "order_type": "express",
+    "agent_id": 2,
+    "amount": 0.01,
+    "total_amount": 0.1,
+    "description": "订单抽成 - 校内包裹配送服务",
+    "created_at": "2026-07-02T10:04:39.943Z"
+  },
+  {
+    "id": 13,
+    "order_id": 5,
+    "order_type": "express",
+    "agent_id": 2,
+    "amount": 0.01,
+    "total_amount": 0.1,
+    "description": "订单抽成 - 校内包裹配送服务",
+    "created_at": "2026-07-02T10:04:43.174Z"
+  },
+  {
+    "id": 14,
+    "order_id": 4,
+    "order_type": "express",
+    "agent_id": 2,
+    "amount": 0.01,
+    "total_amount": 0.1,
+    "description": "订单抽成 - 校内包裹配送服务",
+    "created_at": "2026-07-02T10:04:46.270Z"
   }
 ]

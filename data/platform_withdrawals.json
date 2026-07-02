@@ -1,0 +1,15 @@
+[
+  {
+    "id": 1,
+    "admin_id": 2,
+    "amount": 0.76,
+    "withdraw_method": "wechat",
+    "alipay_account": "",
+    "wechat_account": "ym2637641337",
+    "real_name": "张廷玉",
+    "status": "approved",
+    "remark": "平台管理员提现",
+    "created_at": "2026-06-30T17:54:27.118Z",
+    "processed_at": "2026-06-30T17:54:27.118Z"
+  }
+]

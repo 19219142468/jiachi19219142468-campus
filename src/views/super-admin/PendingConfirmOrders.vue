@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="p-6">
     <div class="mb-6">
       <h1 class="text-2xl font-bold text-gray-800">待确认收款</h1>
@@ -12,7 +12,7 @@
         <div class="text-orange-100 text-sm">待确认订单</div>
       </div>
       <div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-4 text-white">
-        <div class="text-3xl font-bold">¥{{ totalAmount.toFixed(2) }}</div>
+        <div class="text-3xl font-bold">¥{{ formatMoney(totalAmount) }}</div>
         <div class="text-blue-100 text-sm">待确认金额</div>
       </div>
       <div class="bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-4 text-white">
@@ -20,7 +20,7 @@
         <div class="text-green-100 text-sm">今日新增</div>
       </div>
       <div class="bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl p-4 text-white">
-        <div class="text-3xl font-bold">¥{{ todayAmount.toFixed(2) }}</div>
+        <div class="text-3xl font-bold">¥{{ formatMoney(todayAmount) }}</div>
         <div class="text-purple-100 text-sm">今日金额</div>
       </div>
     </div>
@@ -72,7 +72,7 @@
               </div>
               <div>
                 <p class="text-gray-500">订单金额</p>
-                <p class="font-bold text-xl text-primary-600">¥{{ order.total_amount.toFixed(2) }}</p>
+                <p class="font-bold text-xl text-primary-600">¥{{ formatMoney(order.total_amount) }}</p>
               </div>
               <div>
                 <p class="text-gray-500">提交时间</p>
@@ -137,7 +137,7 @@
           </div>
           <div class="flex justify-between items-center p-4 bg-green-50 rounded-xl">
             <span class="text-gray-600">订单金额</span>
-            <span class="text-2xl font-bold text-green-600">¥{{ selectedOrder.total_amount.toFixed(2) }}</span>
+            <span class="text-2xl font-bold text-green-600">¥{{ formatMoney(selectedOrder.total_amount) }}</span>
           </div>
           <div class="flex justify-between items-center p-4 bg-gray-50 rounded-xl">
             <span class="text-gray-600">用户手机</span>
@@ -146,6 +146,14 @@
           <div class="flex justify-between items-center p-4 bg-gray-50 rounded-xl">
             <span class="text-gray-600">提交时间</span>
             <span class="font-medium text-gray-800">{{ formatDateTime(selectedOrder.transfer_submitted_at || selectedOrder.created_at) }}</span>
+          </div>
+          <!-- 转账截图 -->
+          <div v-if="selectedOrder.proof_image" class="p-4 bg-orange-50 rounded-xl">
+            <p class="text-gray-600 mb-2 font-medium">转账截图：</p>
+            <img :src="selectedOrder.proof_image" alt="转账截图" class="w-full max-h-64 object-contain rounded-lg border" />
+          </div>
+          <div v-else class="p-4 bg-gray-50 rounded-xl text-center">
+            <p class="text-gray-400">用户未上传转账截图</p>
           </div>
         </div>
 
@@ -164,9 +172,12 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { superAdminApi } from '@/api'
+import { formatMoney, formatTime } from '@/utils/format'
 import { CheckCircleIcon, InformationCircleIcon, EyeIcon, XIcon, RefreshIcon } from '@heroicons/vue/outline'
 
+const router = useRouter()
 const orders = ref<any[]>([])
 const loading = ref(false)
 const confirming = ref<number | null>(null)
@@ -233,25 +244,11 @@ function showDetail(order: any) {
   selectedOrder.value = order
 }
 
-function formatTime(dateStr: string) {
-  const date = new Date(dateStr)
-  return date.toLocaleString('zh-CN', {
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
-
-function formatDateTime(dateStr: string) {
-  const date = new Date(dateStr)
-  return date.toLocaleString('zh-CN')
-}
-
 function getWaitTime(dateStr: string) {
   const now = Date.now()
-  const date = new Date(dateStr).getTime()
-  const diff = now - date
+  const date = new Date(dateStr)
+  if (isNaN(date.getTime())) return '-'
+  const diff = now - date.getTime()
   
   const minutes = Math.floor(diff / 60000)
   const hours = Math.floor(minutes / 60)
@@ -264,8 +261,9 @@ function getWaitTime(dateStr: string) {
 
 function getWaitTimeClass(dateStr: string) {
   const now = Date.now()
-  const date = new Date(dateStr).getTime()
-  const diff = now - date
+  const date = new Date(dateStr)
+  if (isNaN(date.getTime())) return 'text-gray-500 font-medium'
+  const diff = now - date.getTime()
   const hours = diff / 3600000
   
   if (hours < 1) return 'text-green-600 font-medium'

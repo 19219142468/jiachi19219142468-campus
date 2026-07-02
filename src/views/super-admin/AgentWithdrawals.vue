@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div>
     <div class="flex items-center justify-between mb-6">
       <h1 class="text-2xl font-bold text-gray-800">业务员提现审核</h1>
@@ -44,7 +44,7 @@
               <td colspan="8" class="px-6 py-12 text-center text-gray-400">暂无提现申请</td>
             </tr>
             <tr v-for="w in withdrawals" :key="w.id" class="hover:bg-gray-50">
-              <td class="px-6 py-4 text-sm text-gray-600">{{ formatDate(w.created_at) }}</td>
+              <td class="px-6 py-4 text-sm text-gray-600">{{ formatTime(w.created_at) }}</td>
               <td class="px-6 py-4">
                 <div class="flex items-center gap-2">
                   <div class="w-8 h-8 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-lg flex items-center justify-center text-white text-sm font-bold">
@@ -62,7 +62,7 @@
                 {{ w.withdraw_method === 'alipay' ? w.alipay_account : w.wechat_account }}
               </td>
               <td class="px-6 py-4 text-sm text-gray-600">{{ w.real_name }}</td>
-              <td class="px-6 py-4 font-semibold text-gray-800">¥{{ w.amount.toFixed(2) }}</td>
+              <td class="px-6 py-4 font-semibold text-gray-800">¥{{ formatMoney(w.amount) }}</td>
               <td class="px-6 py-4">
                 <span :class="['px-2 py-1 rounded text-xs', statusClass(w.status)]">
                   {{ statusLabels[w.status] }}
@@ -85,7 +85,7 @@
                 </div>
                 <div v-else>
                   <p v-if="w.remark" class="text-xs text-gray-500">备注：{{ w.remark }}</p>
-                  <p v-if="w.processed_at" class="text-xs text-gray-400">{{ formatDate(w.processed_at) }}</p>
+                  <p v-if="w.processed_at" class="text-xs text-gray-400">{{ formatTime(w.processed_at) }}</p>
                 </div>
               </td>
             </tr>
@@ -138,6 +138,7 @@
 import { ref, onMounted } from 'vue'
 import { XIcon } from '@heroicons/vue/outline'
 import { superAdminApi } from '@/api'
+import { formatMoney, formatTime } from '@/utils/format'
 
 const withdrawals = ref<any[]>([])
 const filterStatus = ref('')
@@ -160,12 +161,6 @@ function statusClass(status: string) {
     rejected: 'bg-red-100 text-red-700'
   }
   return classes[status] || 'bg-gray-100 text-gray-700'
-}
-
-function formatDate(dateStr: string) {
-  if (!dateStr) return ''
-  const d = new Date(dateStr)
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
 }
 
 function getAuthHeaders() {

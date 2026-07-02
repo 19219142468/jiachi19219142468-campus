@@ -29,6 +29,10 @@
             <option value="cancelled">已取消</option>
           </select>
         </div>
+        <div>
+          <label class="block text-sm text-gray-600 mb-1">搜索</label>
+          <input v-model="filters.keyword" type="text" placeholder="订单号/手机号" class="px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none w-48">
+        </div>
         <button 
           @click="fetchOrders" 
           class="px-6 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors"
@@ -56,13 +60,13 @@
           <tbody class="divide-y divide-gray-100">
             <tr v-for="order in orders" :key="order.id" class="hover:bg-gray-50">
               <td class="px-6 py-4 text-sm font-medium text-gray-800">{{ order.order_no }}</td>
-              <td class="px-6 py-4 text-sm text-gray-600">{{ order.user?.phone || '-' }}</td>
+              <td class="px-6 py-4 text-sm text-gray-600">{{ order.phone || order.name || '-' }}</td>
               <td class="px-6 py-4 text-sm">
                 <span :class="['px-2 py-1 rounded-full text-xs', typeClass(order.type)]">
                   {{ typeLabels[order.type] }}
                 </span>
               </td>
-              <td class="px-6 py-4 text-sm font-medium text-gray-800">¥{{ order.total_amount.toFixed(2) }}</td>
+              <td class="px-6 py-4 text-sm font-medium text-gray-800">¥{{ formatMoney(order.total_amount) }}</td>
               <td class="px-6 py-4 text-sm text-gray-600">{{ order.agent?.name || '-' }}</td>
               <td class="px-6 py-4 text-sm">
                 <span :class="['px-2 py-1 rounded-full text-xs', statusClass(order.status)]">
@@ -73,6 +77,13 @@
               <td class="px-6 py-4 text-sm">
                 <button @click="viewDetail(order.id)" class="text-indigo-600 hover:text-indigo-800 mr-3">
                   详情
+                </button>
+                <button 
+                  v-if="order.status === 'pending_confirm'"
+                  @click="confirmPayment(order.id)" 
+                  class="text-green-600 hover:text-green-800 mr-3"
+                >
+                  确认收款
                 </button>
                 <button 
                   v-if="order.status === 'paid'"
@@ -139,8 +150,8 @@
                   </span>
                 </div>
                 <div><span class="text-gray-500">类型：</span>{{ typeLabels[orderDetail.type] }}</div>
-                <div><span class="text-gray-500">金额：</span>¥{{ orderDetail.total_amount.toFixed(2) }}</div>
-                <div><span class="text-gray-500">用户：</span>{{ orderDetail.user?.phone || '-' }}</div>
+                <div><span class="text-gray-500">金额：</span>¥{{ formatMoney(orderDetail.total_amount) }}</div>
+                <div><span class="text-gray-500">用户手机号：</span>{{ orderDetail.phone || '-' }}</div>
                 <div><span class="text-gray-500">业务员：</span>{{ orderDetail.agent?.name || '-' }}</div>
               </div>
             </div>
@@ -240,15 +251,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import { ref, onMounted, onUnmounted } from 'vue'
+import { superAdminApi } from '@/api'
+import { formatMoney, formatTime } from '@/utils/format'
 import { XIcon } from '@heroicons/vue/outline'
 
 const orders = ref<any[]>([])
 const total = ref(0)
 const page = ref(1)
 const pageSize = ref(20)
-const filters = ref({ type: '', status: '' })
+const filters = ref({ type: '', status: '', keyword: '' })
 const showDetail = ref(false)
 const orderDetail = ref<any>(null)
 const showAssign = ref(false)
@@ -297,24 +309,12 @@ function typeClass(type: string) {
   return classes[type] || 'bg-gray-100 text-gray-700'
 }
 
-function formatTime(time: string) {
-  return new Date(time).toLocaleString('zh-CN')
-}
-
-function getAuthHeaders() {
-  const token = localStorage.getItem('super_admin_token')
-  return { Authorization: `Bearer ${token}` }
-}
-
 async function fetchOrders() {
   try {
-    const res = await axios.get('/api/admin/orders', {
-      headers: getAuthHeaders(),
-      params: { ...filters.value, page: page.value, limit: pageSize.value }
-    })
-    if (res.data.code === 0) {
-      orders.value = res.data.data.list || []
-      total.value = res.data.data.total || 0
+    const res = await superAdminApi.getOrders(filters.value)
+    if (res.code === 0) {
+      orders.value = res.data.list || []
+      total.value = res.data.total || 0
     }
   } catch (e) {
     console.error('获取订单列表失败', e)
@@ -323,11 +323,9 @@ async function fetchOrders() {
 
 async function viewDetail(id: number) {
   try {
-    const res = await axios.get(`/api/admin/orders/${id}/detail`, {
-      headers: getAuthHeaders()
-    })
-    if (res.data.code === 0) {
-      orderDetail.value = res.data.data
+    const res = await superAdminApi.getOrderDetail(id)
+    if (res.code === 0) {
+      orderDetail.value = res.data
       showDetail.value = true
     }
   } catch (e) {
@@ -337,12 +335,9 @@ async function viewDetail(id: number) {
 
 async function fetchAgents() {
   try {
-    const res = await axios.get('/api/super-admin/agents', {
-      headers: getAuthHeaders(),
-      params: { status: 1, limit: 100 }
-    })
-    if (res.data.code === 0) {
-      agentList.value = res.data.data.list || []
+    const res = await superAdminApi.getAgents({ status: 1, limit: 100 })
+    if (res.code === 0) {
+      agentList.value = res.data.list || []
     }
   } catch (e) {
     console.error('获取业务员列表失败', e)
@@ -359,17 +354,13 @@ async function assignOrder() {
   if (!selectedAgentId.value || !currentOrder.value) return
   assigning.value = true
   try {
-    const res = await axios.put(
-      `/api/admin/orders/${currentOrder.value.id}/assign`,
-      { agent_id: selectedAgentId.value },
-      { headers: getAuthHeaders() }
-    )
-    if (res.data.code === 0) {
+    const res = await superAdminApi.assignOrder(currentOrder.value.id, Number(selectedAgentId.value))
+    if (res.code === 0) {
       showAssign.value = false
       fetchOrders()
       alert('分配成功')
     } else {
-      alert(res.data.message || '分配失败')
+      alert(res.message || '分配失败')
     }
   } catch (e: any) {
     alert(e.response?.data?.message || '分配失败')
@@ -381,24 +372,55 @@ async function assignOrder() {
 async function reclaimOrder(id: number) {
   if (!confirm('确定要回收这个订单吗？')) return
   try {
-    const res = await axios.put(
-      `/api/admin/orders/${id}/reclaim`,
-      {},
-      { headers: getAuthHeaders() }
-    )
-    if (res.data.code === 0) {
+    const res = await superAdminApi.reclaimOrder(id)
+    if (res.code === 0) {
       fetchOrders()
       alert('回收成功')
     } else {
-      alert(res.data.message || '回收失败')
+      alert(res.message || '回收失败')
     }
   } catch (e: any) {
     alert(e.response?.data?.message || '回收失败')
   }
 }
 
+async function confirmPayment(id: number) {
+  if (!confirm('确认已收到这笔款项吗？')) return
+  try {
+    const res = await superAdminApi.confirmPayment(id)
+    if (res.code === 0) {
+      fetchOrders()
+      alert('确认收款成功')
+    } else {
+      alert(res.message || '操作失败')
+    }
+  } catch (e: any) {
+    alert(e.response?.data?.message || '操作失败')
+  }
+}
+
 onMounted(() => {
   fetchOrders()
   fetchAgents()
+  startAutoRefresh()
+})
+
+let refreshInterval: number | null = null
+function startAutoRefresh() {
+  if (refreshInterval) return
+  refreshInterval = window.setInterval(() => {
+    fetchOrders()
+  }, 15000)
+}
+
+function stopAutoRefresh() {
+  if (refreshInterval) {
+    clearInterval(refreshInterval)
+    refreshInterval = null
+  }
+}
+
+onUnmounted(() => {
+  stopAutoRefresh()
 })
 </script>

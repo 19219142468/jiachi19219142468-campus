@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>嘉驰校园服务 - 首页</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="app">
+  <header class="header">
+    <div class="logo">🎓 嘉驰校园服务</div>
+    <div class="header-actions">
+      <button class="btn-link" onclick="goMyOrders()">我的订单</button>
+    </div>
+  </header>
+
+  <div class="banner">
+    <div class="banner-text">
+      <h2>校园一站式服务平台</h2>
+      <p>快递代取 · 打印复印 · 课程辅导 · 代写服务</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3 class="section-title">热门服务</h3>
+    <div class="service-grid">
+      <div class="service-card" onclick="goOrder('express')">
+        <div class="service-icon">📦</div>
+        <div class="service-name">快递代取</div>
+        <div class="service-desc">代取快递，送货上门</div>
+        <div class="service-price">￥3起</div>
+      </div>
+      <div class="service-card" onclick="goOrder('print')">
+        <div class="service-icon">🖨️</div>
+        <div class="service-name">打印复印</div>
+        <div class="service-desc">黑白/彩色打印</div>
+        <div class="service-price">￥0.5/张</div>
+      </div>
+      <div class="service-card" onclick="goOrder('course')">
+        <div class="service-icon">📚</div>
+        <div class="service-name">课程辅导</div>
+        <div class="service-desc">专业老师一对一</div>
+        <div class="service-price">￥50起</div>
+      </div>
+      <div class="service-card" onclick="goOrder('handwriting')">
+        <div class="service-icon">✍️</div>
+        <div class="service-name">代写服务</div>
+        <div class="service-desc">手写/打字都可以</div>
+        <div class="service-price">￥10起</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3 class="section-title">服务特色</h3>
+    <div class="feature-grid">
+      <div class="feature-item">
+        <div class="feature-icon">⚡</div>
+        <div class="feature-name">快速响应</div>
+        <div class="feature-desc">下单后5分钟内接单</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">💰</div>
+        <div class="feature-name">价格透明</div>
+        <div class="feature-desc">明码标价无隐形消费</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">🛡️</div>
+        <div class="feature-name">安全保障</div>
+        <div class="feature-desc">平台担保交易安全</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">🎯</div>
+        <div class="feature-name">专业服务</div>
+        <div class="feature-desc">经过认证的接单员</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="admin-entry">
+    <button class="btn-outline" onclick="goAdminLogin()">管理员入口</button>
+    <button class="btn-outline" onclick="goAgentLogin()">接单员入口</button>
+  </div>
+
+  <footer class="footer">
+    <p>© 2026 嘉驰校园服务平台</p>
+  </footer>
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>

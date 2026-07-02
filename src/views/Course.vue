@@ -140,23 +140,25 @@
         </ul>
       </div>
     </main>
+    <MobileBottomNav />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { orderApi } from '@/api'
+import { orderApi, publicApi } from '@/api'
 import { ensureLoggedIn } from '@/utils/auth-helper'
 import { ChevronLeftIcon, InformationCircleIcon, CheckCircleIcon } from '@heroicons/vue/outline'
+import MobileBottomNav from '@/components/MobileBottomNav.vue'
 
 const router = useRouter()
 const loading = ref(false)
 const error = ref('')
 const phoneError = ref('')
 
-const basePrice = 1.7
-const urgentPrice = 1
+const basePrice = ref(1.7)
+const urgentPrice = ref(1)
 const courseCount = 1
 
 const form = ref({
@@ -167,9 +169,23 @@ const form = ref({
   urgent: false
 })
 
+onMounted(async () => {
+  try {
+    const res: any = await publicApi.getServicePrices()
+    if (res.code === 0 && res.data) {
+      if (res.data.course_base_price) {
+        basePrice.value = parseFloat(res.data.course_base_price)
+      }
+      if (res.data.course_urgent_price) {
+        urgentPrice.value = parseFloat(res.data.course_urgent_price)
+      }
+    }
+  } catch (e) {}
+})
+
 const totalPrice = computed(() => {
-  const base = basePrice * courseCount
-  const urgent = form.value.urgent ? urgentPrice : 0
+  const base = basePrice.value * courseCount
+  const urgent = form.value.urgent ? urgentPrice.value : 0
   return base + urgent
 })
 

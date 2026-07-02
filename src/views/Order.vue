@@ -172,36 +172,46 @@
         </div>
 
         <div v-else class="space-y-4">
-          <router-link
+          <div
             v-for="order in filteredOrders"
             :key="order.id"
-            :to="orderDetailUrl(order.id)"
             class="block bg-white rounded-2xl shadow-sm p-5 hover:shadow-md transition-shadow"
           >
-            <div class="flex items-start justify-between mb-3">
-              <div class="flex items-center gap-3">
-                <div :class="['w-12 h-12 rounded-xl flex items-center justify-center', typeIconBg(order.type)]">
-                  <component :is="typeIcon(order.type)" class="w-6 h-6 text-white" />
+            <router-link :to="orderDetailUrl(order.id)" class="block">
+              <div class="flex items-start justify-between mb-3">
+                <div class="flex items-center gap-3">
+                  <div :class="['w-12 h-12 rounded-xl flex items-center justify-center', typeIconBg(order.type)]">
+                    <component :is="typeIcon(order.type)" class="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <p class="font-semibold text-gray-800">{{ typeLabel(order.type) }}</p>
+                    <p class="text-xs text-gray-400">{{ order.order_no }}</p>
+                  </div>
                 </div>
-                <div>
-                  <p class="font-semibold text-gray-800">{{ typeLabel(order.type) }}</p>
-                  <p class="text-xs text-gray-400">{{ order.order_no }}</p>
-                </div>
+                <span :class="['px-3 py-1 rounded-full text-xs font-medium', statusBg(order.status)]">
+                  {{ statusLabels[order.status] }}
+                </span>
               </div>
-              <span :class="['px-3 py-1 rounded-full text-xs font-medium', statusBg(order.status)]">
-                {{ statusLabels[order.status] }}
-              </span>
+              
+              <div class="text-sm text-gray-500 mb-3 line-clamp-2">
+                {{ orderDesc(order) }}
+              </div>
+              
+              <div class="flex items-center justify-between pt-3 border-t border-gray-100">
+                <p class="text-sm text-gray-400">{{ formatTimeAgo(order.created_at) }}</p>
+                <p class="text-lg font-bold text-orange-500">¥{{ order.total_amount }}</p>
+              </div>
+            </router-link>
+            <!-- 评价按钮 -->
+            <div v-if="order.status === 'completed' && !order.reviewed" class="mt-3 pt-3 border-t border-gray-100">
+              <button @click="openReview(order)" class="w-full py-2 bg-orange-50 text-orange-600 text-sm font-medium rounded-lg hover:bg-orange-100 transition-colors">
+                评价此订单
+              </button>
             </div>
-            
-            <div class="text-sm text-gray-500 mb-3 line-clamp-2">
-              {{ orderDesc(order) }}
+            <div v-if="order.reviewed" class="mt-3 pt-3 border-t border-gray-100 text-center">
+              <span class="text-sm text-green-600">已评价</span>
             </div>
-            
-            <div class="flex items-center justify-between pt-3 border-t border-gray-100">
-              <p class="text-sm text-gray-400">{{ formatTime(order.created_at) }}</p>
-              <p class="text-lg font-bold text-orange-500">¥{{ order.total_amount }}</p>
-            </div>
-          </router-link>
+          </div>
         </div>
       </div>
     </main>
@@ -223,6 +233,33 @@
         </router-link>
       </div>
     </nav>
+
+    <!-- 评价弹窗 -->
+    <div v-if="showReview" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" @click.self="showReview = false">
+      <div class="bg-white rounded-2xl w-full max-w-sm p-6">
+        <h3 class="text-lg font-bold text-gray-800 mb-4">评价订单</h3>
+        <p class="text-sm text-gray-500 mb-4">订单号：{{ reviewOrder?.order_no }}</p>
+        
+        <div class="mb-4">
+          <p class="text-sm font-medium text-gray-700 mb-2">评分</p>
+          <div class="flex gap-2">
+            <button v-for="n in 5" :key="n" @click="reviewRating = n" class="text-3xl transition-all" :class="n <= reviewRating ? 'text-yellow-400' : 'text-gray-300'">★</button>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <p class="text-sm font-medium text-gray-700 mb-2">评价内容（选填）</p>
+          <textarea v-model="reviewContent" rows="3" placeholder="说说你的服务体验..." class="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-500 text-sm"></textarea>
+        </div>
+
+        <div class="flex gap-3">
+          <button @click="showReview = false" class="flex-1 py-2 bg-gray-100 text-gray-700 rounded-xl">取消</button>
+          <button @click="submitReview" :disabled="submittingReview" class="flex-1 py-2 bg-orange-500 text-white rounded-xl disabled:opacity-50">
+            {{ submittingReview ? '提交中...' : '提交评价' }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -246,6 +283,7 @@ import {
   ArrowRightIcon,
   SearchIcon
 } from '@heroicons/vue/outline'
+import { formatTimeAgo } from '@/utils/format'
 
 const route = useRoute()
 const router = useRouter()
@@ -260,6 +298,11 @@ const searchPhone = ref('')
 const phoneError = ref('')
 const hasQueried = ref(false)
 const keyword = ref('')
+const showReview = ref(false)
+const reviewOrder = ref<any>(null)
+const reviewRating = ref(5)
+const reviewContent = ref('')
+const submittingReview = ref(false)
 
 const tabs = [
   { value: 'all', label: '全部' },
@@ -322,16 +365,18 @@ function typeIconBg(type: string) {
 
 function orderDesc(order: any) {
   if (order.type === 'express') {
-    return `取件码：${order.pickup_code || '—'} · ${order.express_size === 'small' ? '小件' : '大件'}${order.urgent ? ' · 加急' : ''}`
+    return `取件码：${order.pickup_code || order.express_pickup_code || '—'} · ${order.express_size === 'large' ? '大件' : '小件'}${order.urgent ? ' · 加急' : ''}`
   }
   if (order.type === 'handwriting') {
     return `${order.word_count || 0}字 · ${order.font || '标准手写'}${order.urgent ? ' · 加急' : ''}`
   }
   if (order.type === 'print') {
-    return `${order.print_type === 'black' ? '黑白' : '彩色'}打印 · ${order.copies || 1}份`
+    const totalPages = order.total_pages || order.pages || 0
+    const totalCopies = order.total_copies || order.copies || 1
+    return `打印服务 · 共${totalPages || '多'}页${totalCopies > 1 ? ` · ${totalCopies}份` : ''}`
   }
   if (order.type === 'course') {
-    return `${order.course_platform || '学习通'} · ${order.course_count || 1}门${order.urgent ? ' · 加急' : ''}`
+    return `${order.course_platform || '网课平台'} · ${order.course_count || 1}门${order.urgent ? ' · 加急' : ''}`
   }
   return '—'
 }
@@ -341,19 +386,6 @@ function formatPhone(phone: string) {
     return phone.substring(0, 3) + '****' + phone.substring(7)
   }
   return phone
-}
-
-function formatTime(time: string) {
-  const date = new Date(time)
-  const now = new Date()
-  const diff = now.getTime() - date.getTime()
-  
-  if (diff < 60000) return '刚刚'
-  if (diff < 3600000) return Math.floor(diff / 60000) + '分钟前'
-  if (diff < 86400000) return Math.floor(diff / 3600000) + '小时前'
-  if (diff < 604800000) return Math.floor(diff / 86400000) + '天前'
-  
-  return `${date.getMonth() + 1}月${date.getDate()}日`
 }
 
 const filteredOrders = computed(() => {
@@ -495,4 +527,32 @@ watch(() => userStore.isLoggedIn, (isLoggedIn) => {
     fetchLoggedInOrders()
   }
 })
+
+function openReview(order: any) {
+  reviewOrder.value = order
+  reviewRating.value = 5
+  reviewContent.value = ''
+  showReview.value = true
+}
+
+async function submitReview() {
+  if (!reviewOrder.value) return
+  submittingReview.value = true
+  try {
+    const res = await orderApi.submitReview(reviewOrder.value.id, reviewRating.value, reviewContent.value)
+    if (res.code === 0) {
+      // 更新本地订单状态
+      const idx = orders.value.findIndex(o => o.id === reviewOrder.value.id)
+      if (idx !== -1) orders.value[idx].reviewed = 1
+      showReview.value = false
+      alert('评价成功，感谢您的反馈！')
+    } else {
+      alert(res.message || '评价失败')
+    }
+  } catch (e: any) {
+    alert('评价失败，请稍后重试')
+  } finally {
+    submittingReview.value = false
+  }
+}
 </script>

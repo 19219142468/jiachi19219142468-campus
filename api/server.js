@@ -48,20 +48,85 @@ if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true })
 }
 
+const dataCache = new Map()
+const writeQueues = new Map()
+const cacheDirty = new Map()
+
 function loadData(name) {
+  if (dataCache.has(name)) {
+    return dataCache.get(name)
+  }
   const file = path.join(DATA_DIR, `${name}.json`)
-  if (!fs.existsSync(file)) return []
+  if (!fs.existsSync(file)) {
+    dataCache.set(name, [])
+    return []
+  }
   try {
-    return JSON.parse(fs.readFileSync(file, 'utf-8'))
+    const data = JSON.parse(fs.readFileSync(file, 'utf-8'))
+    dataCache.set(name, data)
+    return data
   } catch {
+    console.error(`加载${name}数据失败，使用空数据`)
+    dataCache.set(name, [])
     return []
   }
 }
 
 function saveData(name, data) {
-  const file = path.join(DATA_DIR, `${name}.json`)
-  fs.writeFileSync(file, JSON.stringify(data, null, 2))
+  dataCache.set(name, data)
+  cacheDirty.set(name, true)
+  
+  if (!writeQueues.has(name)) {
+    writeQueues.set(name, Promise.resolve())
+  }
+  
+  writeQueues.set(name, writeQueues.get(name).then(() => {
+    return new Promise((resolve) => {
+      setImmediate(() => {
+        try {
+          const file = path.join(DATA_DIR, `${name}.json`)
+          const tempFile = `${file}.tmp`
+          fs.writeFileSync(tempFile, JSON.stringify(data, null, 2))
+          fs.renameSync(tempFile, file)
+          cacheDirty.set(name, false)
+        } catch (e) {
+          console.error(`保存${name}数据失败:`, e)
+        }
+        resolve()
+      })
+    })
+  }))
 }
+
+function forceSaveAll() {
+  for (const [name, dirty] of cacheDirty.entries()) {
+    if (dirty && dataCache.has(name)) {
+      try {
+        const file = path.join(DATA_DIR, `${name}.json`)
+        const tempFile = `${file}.tmp`
+        fs.writeFileSync(tempFile, JSON.stringify(dataCache.get(name), null, 2))
+        fs.renameSync(tempFile, file)
+        cacheDirty.set(name, false)
+      } catch (e) {
+        console.error(`强制保存${name}数据失败:`, e)
+      }
+    }
+  }
+}
+
+process.on('SIGINT', () => {
+  console.log('正在保存数据...')
+  forceSaveAll()
+  process.exit(0)
+})
+
+process.on('SIGTERM', () => {
+  console.log('正在保存数据...')
+  forceSaveAll()
+  process.exit(0)
+})
+
+setInterval(forceSaveAll, 30000)
 
 function initData() {
   const users = loadData('users')
@@ -153,6 +218,18 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }))
 // 静态文件服务 - 上传的图片
 app.use('/uploads', express.static(UPLOAD_DIR))
 
+// 请求日志中间件
+app.use((req, res, next) => {
+  const start = Date.now()
+  res.on('finish', () => {
+    const duration = Date.now() - start
+    if (res.statusCode >= 400) {
+      console.log(`[${new Date().toISOString()}] ${req.method} ${req.url} ${res.statusCode} - ${duration}ms`)
+    }
+  })
+  next()
+})
+
 const JWT_SECRET = 'campus-service-secret-2024'
 
 function authMiddleware(req, res, next) {
@@ -195,6 +272,7 @@ function superAdminAuth(req, res, next) {
     if (user?.role !== 'super_admin') return res.status(403).json({ code: 403, message: '无权限' })
     req.userId = decoded.userId
     req.userRole = 'super_admin'
+    req.adminInfo = user
     next()
   } catch {
     return res.status(401).json({ code: 401, message: '登录已过期' })
@@ -246,6 +324,23 @@ function notifyUser(userId, message) {
 
 function getNextId(arr) {
   return arr.length > 0 ? Math.max(...arr.map(i => i.id)) + 1 : 1
+}
+
+// 记录操作日志
+function logAction(operatorId, operatorRole, operatorName, action, detail) {
+  try {
+    const logs = loadData('operation_logs')
+    logs.push({
+      id: getNextId(logs),
+      operator_id: operatorId,
+      operator_role: operatorRole,
+      operator_name: operatorName,
+      action: action,
+      detail: detail,
+      created_at: new Date().toISOString()
+    })
+    saveData('operation_logs', logs)
+  } catch (e) {}
 }
 
 wss.on('connection', (ws) => {
@@ -302,21 +397,34 @@ app.post('/api/auth/login', (req, res) => {
   const { phone, password } = req.body
   const users = loadData('users')
   let user = users.find(u => u.phone === phone)
-  
+
+  // 用户不存在时自动创建（无密码，方便学生下单）
   if (!user) {
-    return res.json({ code: 400, message: '该手机号未注册，请先完成下单后用订单手机号登录' })
+    const newUser = {
+      id: getNextId(users),
+      phone,
+      password: '',
+      nickname: '用户' + phone.slice(-4),
+      role: 'user',
+      balance: 0,
+      status: 1,
+      created_at: new Date().toISOString()
+    }
+    users.push(newUser)
+    saveData('users', users)
+    user = newUser
   }
-  
+
   if (password && user.password) {
     if (!bcrypt.compareSync(password, user.password)) {
       return res.json({ code: 400, message: '手机号或密码错误' })
     }
   }
-  
+
   if (user.status === 0) {
     return res.json({ code: 400, message: '账号已被禁用' })
   }
-  
+
   const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '7d' })
   const { password: _, ...userInfo } = user
   res.json({ code: 0, data: { token, user: userInfo } })
@@ -405,8 +513,28 @@ app.delete('/api/user/addresses/:id', authMiddleware, (req, res) => {
   res.json({ code: 0, message: '删除成功' })
 })
 
+// 防重复下单检查：5分钟内同用户同类型待支付订单
+function checkDuplicateOrder(userId, type) {
+  const orders = loadData('orders')
+  const now = new Date()
+  const fiveMinAgo = new Date(now.getTime() - 5 * 60 * 1000)
+  return orders.find(o =>
+    o.user_id === userId &&
+    o.type === type &&
+    o.status === 'pending' &&
+    new Date(o.created_at) > fiveMinAgo
+  )
+}
+
 app.post('/api/orders/print', authMiddleware, (req, res) => {
   const { items, name, phone, delivery_address, pay_method } = req.body
+
+  // 防重复下单
+  const dup = checkDuplicateOrder(req.userId, 'print')
+  if (dup) {
+    return res.json({ code: 400, message: `您有一笔相同的打印订单正在等待支付（订单号：${dup.order_no}），请先完成支付或取消该订单` })
+  }
+
   const configs = loadData('configs')
   const blackPrice = parseFloat(configs.find(c => c.key_name === 'black_print_price')?.value || '0.3')
   const colorPrice = parseFloat(configs.find(c => c.key_name === 'color_print_price')?.value || '0.5')
@@ -471,6 +599,13 @@ app.post('/api/orders/print', authMiddleware, (req, res) => {
 
 app.post('/api/orders/course', authMiddleware, (req, res) => {
   const { platform, course_name, account, password, urgent } = req.body
+
+  // 防重复下单
+  const dup = checkDuplicateOrder(req.userId, 'course')
+  if (dup) {
+    return res.json({ code: 400, message: `您有一笔相同的课业订单正在等待支付（订单号：${dup.order_no}），请先完成支付或取消该订单` })
+  }
+
   const configs = loadData('configs')
   const basePrice = parseFloat(configs.find(c => c.key_name === 'course_base_price')?.value || '1.7')
   const urgentPrice = parseFloat(configs.find(c => c.key_name === 'course_urgent_price')?.value || '1')
@@ -491,7 +626,11 @@ app.post('/api/orders/course', authMiddleware, (req, res) => {
     pickup_time: null,
     paid_at: null,
     completed_at: null,
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
+    urgent: urgent ? 1 : 0,
+    course_platform: platform,
+    course_name,
+    course_count: 1
   }
   orders.push(newOrder)
   saveData('orders', orders)
@@ -522,6 +661,12 @@ app.post('/api/orders/course', authMiddleware, (req, res) => {
 app.post('/api/orders/express', authMiddleware, (req, res) => {
   const { size, pickup_code, name, phone, delivery_address, urgent, remark } = req.body
 
+  // 防重复下单
+  const dup = checkDuplicateOrder(req.userId, 'express')
+  if (dup) {
+    return res.json({ code: 400, message: `您有一笔相同的快递订单正在等待支付（订单号：${dup.order_no}），请先完成支付或取消该订单` })
+  }
+
   const configs = loadData('configs')
   const smallPrice = parseFloat(configs.find(c => c.key_name === 'express_small_price')?.value || '0.1')
   const largePrice = parseFloat(configs.find(c => c.key_name === 'express_large_price')?.value || '2.5')
@@ -547,7 +692,14 @@ app.post('/api/orders/express', authMiddleware, (req, res) => {
     pickup_time: null,
     paid_at: null,
     completed_at: null,
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
+    urgent: urgent ? 1 : 0,
+    express_size: size,
+    express_pickup_code: pickup_code,
+    express_name: name || '',
+    express_phone: phone || '',
+    express_delivery_address: delivery_address || '',
+    express_remark: remark || ''
   }
   orders.push(newOrder)
   saveData('orders', orders)
@@ -584,6 +736,12 @@ app.post('/api/orders/express', authMiddleware, (req, res) => {
 app.post('/api/orders/handwriting', authMiddleware, (req, res) => {
   const { service_type, word_count, font, paper, content, urgent, remark } = req.body
 
+  // 防重复下单
+  const dup = checkDuplicateOrder(req.userId, 'handwriting')
+  if (dup) {
+    return res.json({ code: 400, message: `您有一笔相同的写字订单正在等待支付（订单号：${dup.order_no}），请先完成支付或取消该订单` })
+  }
+
   const pricePer100 = 1.5
   const hundreds = Math.ceil(word_count / 100)
   let totalAmount = hundreds * pricePer100
@@ -606,7 +764,11 @@ app.post('/api/orders/handwriting', authMiddleware, (req, res) => {
     pickup_time: null,
     paid_at: null,
     completed_at: null,
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
+    urgent: urgent ? 1 : 0,
+    word_count,
+    font,
+    hw_service_type: service_type
   }
   orders.push(newOrder)
   saveData('orders', orders)
@@ -742,6 +904,7 @@ app.put('/api/orders/:id/cancel', authMiddleware, (req, res) => {
 // 用户提交转账凭证（标记待确认）
 app.put('/api/orders/:id/confirm-transfer', authMiddleware, (req, res) => {
   const { id } = req.params
+  const { proof_image } = req.body
   const orders = loadData('orders')
   const idx = orders.findIndex(o => o.id === Number(id) && o.user_id === req.userId)
   
@@ -751,6 +914,9 @@ app.put('/api/orders/:id/confirm-transfer', authMiddleware, (req, res) => {
   orders[idx].status = 'pending_confirm'
   orders[idx].transfer_submitted_at = new Date().toISOString()
   orders[idx].verify_attempts = 0
+  if (proof_image) {
+    orders[idx].proof_image = proof_image
+  }
   saveData('orders', orders)
   
   addOrderLog(Number(id), 'user', req.userId, 'transfer_submitted', '用户提交转账，等待自动核验')
@@ -1303,6 +1469,7 @@ app.post('/api/super-admin/agents', superAdminAuth, (req, res) => {
   }
   agents.push(newAgent)
   saveData('agents', agents)
+  logAction(req.userId, 'super_admin', req.adminInfo?.nickname || '超级管理员', 'create_agent', `创建业务员: ${name} (${username})`)
   
   const { password: _, ...agentInfo } = newAgent
   res.json({ code: 0, data: agentInfo })
@@ -1323,6 +1490,7 @@ app.put('/api/super-admin/agents/:id', superAdminAuth, (req, res) => {
   if (password) agents[idx].password = bcrypt.hashSync(password, 10)
   
   saveData('agents', agents)
+  logAction(req.userId, 'super_admin', req.adminInfo?.nickname || '超级管理员', 'update_agent', `修改业务员: ${agents[idx].name} (${agents[idx].username})`)
   const { password: _, ...agentInfo } = agents[idx]
   res.json({ code: 0, data: agentInfo })
 })
@@ -1334,8 +1502,11 @@ app.delete('/api/super-admin/agents/:id', superAdminAuth, (req, res) => {
   
   if (idx === -1) return res.json({ code: 404, message: '业务员不存在' })
   
+  const agentName = agents[idx].name
+  const agentUsername = agents[idx].username
   agents = agents.filter(a => a.id !== Number(id))
   saveData('agents', agents)
+  logAction(req.userId, 'super_admin', req.adminInfo?.nickname || '超级管理员', 'delete_agent', `删除业务员: ${agentName} (${agentUsername})`)
   res.json({ code: 0, message: '删除成功' })
 })
 
@@ -1369,7 +1540,7 @@ app.get('/api/super-admin/agents/:id/stats', superAdminAuth, (req, res) => {
   const totalIncome = completedOrders
     .reduce((sum, o) => sum + parseFloat((o.total_amount * COMMISSION_RATE).toFixed(2)), 0)
   
-  const dailyStatsMap: Record<string, { date: string; income: number; orders: number }> = {}
+  const dailyStatsMap = {}
   completedOrders.forEach(o => {
     const d = new Date(o.completed_at)
     const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
@@ -1665,6 +1836,8 @@ app.put('/api/agent/orders/:id/complete', agentAuth, (req, res) => {
 app.get('/api/agent/stats', agentAuth, (req, res) => {
   const orders = loadData('orders').filter(o => o.agent_id === req.agentId)
   const today = new Date().toDateString()
+  const now = new Date()
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
   
   const todayOrders = orders.filter(o => new Date(o.created_at).toDateString() === today)
   const pendingOrders = orders.filter(o => ['assigned', 'processing'].includes(o.status)).length
@@ -1672,6 +1845,9 @@ app.get('/api/agent/stats', agentAuth, (req, res) => {
   const totalIncome = req.agent.total_income || 0
   const todayIncome = orders
     .filter(o => o.status === 'completed' && new Date(o.completed_at).toDateString() === today)
+    .reduce((sum, o) => sum + parseFloat((o.total_amount * COMMISSION_RATE).toFixed(2)), 0)
+  const monthIncome = orders
+    .filter(o => o.status === 'completed' && new Date(o.completed_at) >= monthStart)
     .reduce((sum, o) => sum + parseFloat((o.total_amount * COMMISSION_RATE).toFixed(2)), 0)
   
   const typeStats = {
@@ -1689,6 +1865,7 @@ app.get('/api/agent/stats', agentAuth, (req, res) => {
       completedOrders,
       totalIncome,
       todayIncome: parseFloat(todayIncome.toFixed(2)),
+      monthIncome: parseFloat(monthIncome.toFixed(2)),
       typeStats
     }
   })
@@ -1892,6 +2069,11 @@ app.put('/api/super-admin/agent-withdrawals/:id/status', superAdminAuth, (req, r
   withdrawals[idx].remark = remark || ''
   saveData('agent_withdrawals', withdrawals)
   
+  const agents = loadData('agents')
+  const agent = agents.find(a => a.id === withdrawals[idx].agent_id)
+  logAction(req.userId, 'super_admin', req.adminInfo?.nickname || '超级管理员', status === 'approved' ? 'approve_withdraw' : 'reject_withdraw', 
+    `${status === 'approved' ? '通过' : '驳回'}业务员 ${agent?.name || '未知'} 提现申请 ¥${withdrawals[idx].amount}${remark ? `，备注：${remark}` : ''}`)
+  
   res.json({ code: 0, message: '处理成功' })
 })
 
@@ -2003,6 +2185,137 @@ app.get('/api/super-admin/orders', superAdminAuth, (req, res) => {
   res.json({ code: 0, data: { list, total, page: Number(page), limit: Number(limit) } })
 })
 
+// ========== 超级管理员 - 订单详情 ==========
+app.get('/api/super-admin/orders/:id/detail', superAdminAuth, (req, res) => {
+  const { id } = req.params
+  const orders = loadData('orders')
+  const order = orders.find(o => o.id === Number(id))
+  
+  if (!order) return res.json({ code: 404, message: '订单不存在' })
+  
+  const orderItems = loadData('order_items').filter(i => i.order_id === Number(id))
+  const users = loadData('users')
+  const agents = loadData('agents')
+  const logs = loadData('order_logs').filter(l => l.order_id === Number(id))
+  
+  const userInfo = users.find(u => u.id === order.user_id)
+  const agentInfo = order.agent_id ? agents.find(a => a.id === order.agent_id) : null
+  
+  const logsWithOperator = logs.map(log => {
+    let operatorName = '系统'
+    if (log.operator_type === 'user') {
+      const u = users.find(u => u.id === log.operator_id)
+      operatorName = u?.nickname || u?.phone || '用户'
+    } else if (log.operator_type === 'admin') {
+      const u = users.find(u => u.id === log.operator_id)
+      operatorName = u?.nickname || '管理员'
+    } else if (log.operator_type === 'agent') {
+      const a = agents.find(a => a.id === log.operator_id)
+      operatorName = a?.name || '业务员'
+    }
+    return { ...log, operator_name: operatorName }
+  })
+  
+  res.json({ 
+    code: 0, 
+    data: { 
+      ...order, 
+      items: orderItems, 
+      user: userInfo, 
+      agent: agentInfo, 
+      logs: logsWithOperator 
+    } 
+  })
+})
+
+// ========== 超级管理员 - 分配订单给业务员 ==========
+app.put('/api/super-admin/orders/:id/assign', superAdminAuth, (req, res) => {
+  const { id } = req.params
+  const { agent_id } = req.body
+  const orders = loadData('orders')
+  const agents = loadData('agents')
+  const idx = orders.findIndex(o => o.id === Number(id))
+  
+  if (idx === -1) return res.json({ code: 404, message: '订单不存在' })
+  if (orders[idx].status !== 'paid') return res.json({ code: 400, message: '该订单状态无法分配' })
+  
+  const agent = agents.find(a => a.id === Number(agent_id))
+  if (!agent || agent.status !== 1) return res.json({ code: 400, message: '业务员不存在或已禁用' })
+  
+  orders[idx].agent_id = Number(agent_id)
+  orders[idx].status = 'assigned'
+  orders[idx].assigned_at = new Date().toISOString()
+  orders[idx].accepted_at = new Date().toISOString()
+  saveData('orders', orders)
+  
+  addOrderLog(Number(id), 'admin', req.userId, 'assign', `分配给业务员：${agent.name}`)
+  logAction(req.userId, 'super_admin', req.adminInfo?.nickname || '超级管理员', 'assign_order', `分配订单 ${orders[idx].order_no} 给业务员 ${agent.name}`)
+  
+  res.json({ code: 0, message: '分配成功' })
+})
+
+// ========== 超级管理员 - 回收订单 ==========
+app.put('/api/super-admin/orders/:id/reclaim', superAdminAuth, (req, res) => {
+  const { id } = req.params
+  const orders = loadData('orders')
+  const idx = orders.findIndex(o => o.id === Number(id))
+  
+  if (idx === -1) return res.json({ code: 404, message: '订单不存在' })
+  if (!['assigned', 'processing'].includes(orders[idx].status)) {
+    return res.json({ code: 400, message: '该订单状态无法回收' })
+  }
+  
+  const oldStatus = orders[idx].status
+  orders[idx].agent_id = null
+  orders[idx].status = 'paid'
+  orders[idx].assigned_at = null
+  orders[idx].accepted_at = null
+  saveData('orders', orders)
+  
+  addOrderLog(Number(id), 'admin', req.userId, 'reclaim', '管理员回收订单')
+  logAction(req.userId, 'super_admin', req.adminInfo?.nickname || '超级管理员', 'reclaim_order', `回收订单 ${orders[idx].order_no}`)
+  
+  res.json({ code: 0, message: '回收成功' })
+})
+
+// ========== 超级管理员 - 用户管理 ==========
+app.get('/api/super-admin/users', superAdminAuth, (req, res) => {
+  const { page = 1, limit = 20, keyword = '' } = req.query
+  const offset = (Number(page) - 1) * Number(limit)
+  
+  let users = loadData('users')
+  
+  if (keyword) {
+    const kw = String(keyword).toLowerCase()
+    users = users.filter(u => 
+      u.phone?.includes(kw) || 
+      u.nickname?.toLowerCase().includes(kw)
+    )
+  }
+  
+  users.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+  const total = users.length
+  const list = users.slice(offset, offset + Number(limit))
+  
+  res.json({ code: 0, data: { list, total, page: Number(page), limit: Number(limit) } })
+})
+
+// 超级管理员 - 更新用户状态
+app.put('/api/super-admin/users/:id/status', superAdminAuth, (req, res) => {
+  const { id } = req.params
+  const { status } = req.body
+  const users = loadData('users')
+  const idx = users.findIndex(u => u.id === Number(id))
+  
+  if (idx === -1) return res.json({ code: 404, message: '用户不存在' })
+  
+  users[idx].status = Number(status)
+  saveData('users', users)
+  logAction(req.userId, 'super_admin', req.adminInfo?.nickname || '超级管理员', 'update_user_status', `${status === 1 ? '启用' : '禁用'}用户 ${users[idx].phone} (${users[idx].nickname || '未命名'})`)
+  
+  res.json({ code: 0, message: '操作成功' })
+})
+
 // ========== 超级管理员 - 待确认收款的订单列表 ==========
 app.get('/api/super-admin/orders/pending-confirm', superAdminAuth, (req, res) => {
   const { page = 1, limit = 50 } = req.query
@@ -2063,10 +2376,72 @@ app.put('/api/super-admin/orders/:id/confirm-payment', superAdminAuth, (req, res
   saveData('payment_records', paymentRecords)
   
   addOrderLog(Number(id), 'super_admin', req.userId, 'confirm_payment', '管理员确认收款')
-  
+  logAction(req.userId, 'super_admin', '超级管理员', 'confirm_payment', `确认订单 ${orders[idx].order_no} 收款 ${orders[idx].total_amount}元`)
+
   notifyUser(orders[idx].user_id, { type: 'order_paid', order_id: id })
   
   res.json({ code: 0, message: '确认收款成功' })
+})
+
+// 操作日志列表
+app.get('/api/super-admin/logs', superAdminAuth, (req, res) => {
+  const { page = 1, limit = 20 } = req.query
+  const logs = loadData('operation_logs')
+  const sorted = logs.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+  const start = (Number(page) - 1) * Number(limit)
+  const list = sorted.slice(start, start + Number(limit))
+  res.json({ code: 0, data: { list, total: sorted.length } })
+})
+
+// 用户提交评价
+app.post('/api/orders/:id/review', authMiddleware, (req, res) => {
+  const { id } = req.params
+  const { rating, content } = req.body
+  const orders = loadData('orders')
+  const idx = orders.findIndex(o => o.id === Number(id) && o.user_id === req.userId)
+  if (idx === -1) return res.json({ code: 404, message: '订单不存在' })
+  if (orders[idx].status !== 'completed') return res.json({ code: 400, message: '只有已完成的订单可以评价' })
+  if (orders[idx].reviewed) return res.json({ code: 400, message: '该订单已评价过了' })
+
+  const reviews = loadData('reviews')
+  reviews.push({
+    id: getNextId(reviews),
+    order_id: orders[idx].id,
+    order_no: orders[idx].order_no,
+    order_type: orders[idx].type,
+    user_id: req.userId,
+    user_phone: orders[idx].user_phone || '',
+    agent_id: orders[idx].agent_id || null,
+    rating: rating,
+    content: content || '',
+    created_at: new Date().toISOString()
+  })
+  saveData('reviews', reviews)
+
+  orders[idx].reviewed = 1
+  saveData('orders', orders)
+
+  res.json({ code: 0, message: '评价成功' })
+})
+
+// 超级管理员查看评价列表
+app.get('/api/super-admin/reviews', superAdminAuth, (req, res) => {
+  const { page = 1, limit = 20, rating = '' } = req.query
+  const allReviews = loadData('reviews')
+  // 全局统计基于全部评价（不受筛选影响）
+  const totalCount = allReviews.length
+  const allSum = allReviews.reduce((s, r) => s + Number(r.rating || 0), 0)
+  const avgRating = totalCount > 0 ? (allSum / totalCount).toFixed(1) : '0.0'
+  const goodCount = allReviews.filter(r => Number(r.rating) >= 4).length
+  const goodRate = totalCount > 0 ? Math.round((goodCount / totalCount) * 100) : 0
+  const badCount = allReviews.filter(r => Number(r.rating) <= 2).length
+
+  let reviews = allReviews
+  if (rating) reviews = reviews.filter(r => r.rating === Number(rating))
+  const sorted = reviews.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+  const start = (Number(page) - 1) * Number(limit)
+  const list = sorted.slice(start, start + Number(limit))
+  res.json({ code: 0, data: { list, total: sorted.length, avgRating, goodRate, badCount, totalCount } })
 })
 
 // ========== 超级管理员 - 支付流水列表 ==========
@@ -2117,10 +2492,59 @@ app.put('/api/super-admin/services', superAdminAuth, (req, res) => {
   
   configs[idx].value = value
   saveData('configs', configs)
+  logAction(req.userId, 'super_admin', req.adminInfo?.nickname || '超级管理员', 'update_service_price', `修改服务配置 ${key}: ${configs[idx].description} → ${value}`)
   res.json({ code: 0, message: '更新成功' })
 })
 
 // ========== 超级管理员 - 上传收款码图片 ==========
+// 通用文件上传接口（base64方式，支持任意文件类型）
+app.post('/api/upload', authMiddleware, (req, res) => {
+  const { file, filename } = req.body
+
+  if (!file) {
+    return res.json({ code: 400, message: '请选择文件' })
+  }
+
+  try {
+    // 解析base64数据
+    const base64Data = file.replace(/^data:[^;]+;base64,/, '')
+    const ext = file.match(/^data:[^/]+\/([^;]+);base64,/)?.[1] || 'bin'
+    // 限制文件类型
+    const allowedExts = ['pdf', 'msword', 'vnd.openxmlformats-officedocument.wordprocessingml.document', 'jpeg', 'jpg', 'png', 'gif', 'bmp']
+    if (!allowedExts.includes(ext)) {
+      // 非标准扩展名，尝试从filename获取
+      const nameExt = filename?.match(/\.(\w+)$/)?.[1]?.toLowerCase()
+      if (nameExt && ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'gif', 'bmp'].includes(nameExt)) {
+        const safeName = Date.now() + '_' + Math.random().toString(36).substr(2, 8) + '.' + nameExt
+        const filePath = path.join(UPLOAD_DIR, safeName)
+        fs.writeFileSync(filePath, base64Data, 'base64')
+        return res.json({ code: 0, data: { url: `/uploads/${safeName}`, filename: filename || safeName } })
+      }
+      return res.json({ code: 400, message: '不支持的文件类型' })
+    }
+
+    // 扩展名映射
+    const extMap = {
+      'msword': 'doc',
+      'vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+      'jpeg': 'jpg',
+      'jpg': 'jpg',
+      'png': 'png',
+      'gif': 'gif',
+      'bmp': 'bmp',
+      'pdf': 'pdf'
+    }
+    const finalExt = extMap[ext] || ext
+    const safeName = Date.now() + '_' + Math.random().toString(36).substr(2, 8) + '.' + finalExt
+    const filePath = path.join(UPLOAD_DIR, safeName)
+    fs.writeFileSync(filePath, base64Data, 'base64')
+
+    res.json({ code: 0, data: { url: `/uploads/${safeName}`, filename: filename || safeName } })
+  } catch (e) {
+    res.json({ code: 500, message: '文件上传失败' })
+  }
+})
+
 app.post('/api/super-admin/upload-qrcode', superAdminAuth, (req, res) => {
   const { image, type } = req.body
   
@@ -2158,6 +2582,7 @@ app.post('/api/super-admin/upload-qrcode', superAdminAuth, (req, res) => {
       })
     }
     saveData('configs', configs)
+    logAction(req.userId, 'super_admin', req.adminInfo?.nickname || '超级管理员', 'upload_qrcode', `上传${type === 'alipay' ? '支付宝' : '微信'}收款码`)
     
     res.json({ code: 0, message: '上传成功', data: { url: imageUrl } })
   } catch (e) {
@@ -2358,6 +2783,27 @@ if (fs.existsSync(DIST_DIR)) {
 
 wss.on('error', () => {})
 
+// 全局错误处理中间件
+app.use((err, req, res, next) => {
+  console.error('服务器错误:', err)
+  res.status(500).json({ code: 500, message: '服务器内部错误' })
+})
+
+// 404处理
+app.use((req, res) => {
+  res.status(404).json({ code: 404, message: '接口不存在' })
+})
+
+// 未捕获异常处理
+process.on('uncaughtException', (err) => {
+  console.error('未捕获的异常:', err)
+  forceSaveAll()
+})
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('未处理的Promise拒绝:', reason)
+})
+
 server.on('listening', () => {
   const port = server.address().port
   console.log(`服务器运行在 http://localhost:${port}`)
@@ -2384,3 +2830,90 @@ setInterval(() => {
 }, 200)
 
 startServer()
+
+// 定时检查超时订单：每2分钟检查一次，超过30分钟未付款的自动取消
+const ORDER_TIMEOUT_MINUTES = 30
+setInterval(() => {
+  try {
+    const orders = loadData('orders')
+    const now = new Date()
+    let changed = false
+    orders.forEach(order => {
+      if (order.status === 'pending') {
+        const createdAt = new Date(order.created_at)
+        const diffMinutes = (now.getTime() - createdAt.getTime()) / 60000
+        if (diffMinutes > ORDER_TIMEOUT_MINUTES) {
+          order.status = 'cancelled'
+          order.cancel_reason = '超时未付款，自动取消'
+          order.cancelled_at = now.toISOString()
+          changed = true
+        }
+      }
+    })
+    if (changed) {
+      saveData('orders', orders)
+    }
+  } catch (e) {}
+}, 2 * 60 * 1000)
+
+// 对账汇总API
+app.get('/api/super-admin/finance/daily-summary', superAdminAuth, (req, res) => {
+  const { start_date, end_date } = req.query
+  const orders = loadData('orders')
+  const platformIncome = loadData('platform_income')
+  
+  // 筛选已完成的订单
+  const completedOrders = orders.filter(o => o.status === 'completed' || o.status === 'paid')
+  
+  // 按日期分组
+  const dailyMap = {}
+  
+  completedOrders.forEach(order => {
+    const date = new Date(order.created_at).toISOString().split('T')[0]
+    if (start_date && date < start_date) return
+    if (end_date && date > end_date) return
+    
+    if (!dailyMap[date]) {
+      dailyMap[date] = {
+        date,
+        total_orders: 0,
+        total_amount: 0,
+        completed_orders: 0,
+        completed_amount: 0,
+        paid_orders: 0,
+        paid_amount: 0,
+        by_type: {}
+      }
+    }
+    
+    const day = dailyMap[date]
+    day.total_orders++
+    day.total_amount += order.total_amount
+    
+    if (order.status === 'completed') {
+      day.completed_orders++
+      day.completed_amount += order.total_amount
+    } else if (order.status === 'paid') {
+      day.paid_orders++
+      day.paid_amount += order.total_amount
+    }
+    
+    if (!day.by_type[order.type]) {
+      day.by_type[order.type] = { count: 0, amount: 0 }
+    }
+    day.by_type[order.type].count++
+    day.by_type[order.type].amount += order.total_amount
+  })
+  
+  // 转为数组并排序
+  const dailyList = Object.values(dailyMap).sort((a, b) => b.date.localeCompare(a.date))
+  
+  // 汇总
+  const summary = {
+    total_orders: completedOrders.length,
+    total_amount: completedOrders.reduce((sum, o) => sum + o.total_amount, 0),
+    platform_income: platformIncome.reduce((sum, p) => sum + p.amount, 0)
+  }
+  
+  res.json({ code: 0, data: { daily: dailyList, summary } })
+})

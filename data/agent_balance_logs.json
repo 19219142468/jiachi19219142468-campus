@@ -20,5 +20,137 @@
     "related_type": "order",
     "description": "订单佣金 - 文案代写",
     "created_at": "2026-06-29T17:48:38.256Z"
+  },
+  {
+    "id": 3,
+    "agent_id": 2,
+    "type": "commission",
+    "amount": 6.75,
+    "balance_after": 13.59,
+    "related_id": 22,
+    "related_type": "order",
+    "description": "订单佣金 - 文案代写",
+    "created_at": "2026-07-02T10:03:56.619Z"
+  },
+  {
+    "id": 4,
+    "agent_id": 2,
+    "type": "commission",
+    "amount": 0.09,
+    "balance_after": 13.68,
+    "related_id": 21,
+    "related_type": "order",
+    "description": "订单佣金 - 校内包裹配送服务",
+    "created_at": "2026-07-02T10:04:02.706Z"
+  },
+  {
+    "id": 5,
+    "agent_id": 2,
+    "type": "commission",
+    "amount": 0.09,
+    "balance_after": 13.77,
+    "related_id": 19,
+    "related_type": "order",
+    "description": "订单佣金 - 校内包裹配送服务",
+    "created_at": "2026-07-02T10:04:10.155Z"
+  },
+  {
+    "id": 6,
+    "agent_id": 2,
+    "type": "commission",
+    "amount": 6.75,
+    "balance_after": 20.52,
+    "related_id": 17,
+    "related_type": "order",
+    "description": "订单佣金 - 文案代写",
+    "created_at": "2026-07-02T10:04:20.099Z"
+  },
+  {
+    "id": 7,
+    "agent_id": 2,
+    "type": "commission",
+    "amount": 0.09,
+    "balance_after": 20.61,
+    "related_id": 16,
+    "related_type": "order",
+    "description": "订单佣金 - 校内包裹配送服务",
+    "created_at": "2026-07-02T10:04:23.067Z"
+  },
+  {
+    "id": 8,
+    "agent_id": 2,
+    "type": "commission",
+    "amount": 0.09,
+    "balance_after": 20.7,
+    "related_id": 15,
+    "related_type": "order",
+    "description": "订单佣金 - 校内包裹配送服务",
+    "created_at": "2026-07-02T10:04:26.331Z"
+  },
+  {
+    "id": 9,
+    "agent_id": 2,
+    "type": "commission",
+    "amount": 1.8,
+    "balance_after": 22.5,
+    "related_id": 11,
+    "related_type": "order",
+    "description": "订单佣金 - 课业时长整理服务",
+    "created_at": "2026-07-02T10:04:30.404Z"
+  },
+  {
+    "id": 10,
+    "agent_id": 2,
+    "type": "commission",
+    "amount": 0.09,
+    "balance_after": 22.59,
+    "related_id": 8,
+    "related_type": "order",
+    "description": "订单佣金 - 校内包裹配送服务",
+    "created_at": "2026-07-02T10:04:33.020Z"
+  },
+  {
+    "id": 11,
+    "agent_id": 2,
+    "type": "commission",
+    "amount": 0.09,
+    "balance_after": 22.68,
+    "related_id": 7,
+    "related_type": "order",
+    "description": "订单佣金 - 校内包裹配送服务",
+    "created_at": "2026-07-02T10:04:36.195Z"
+  },
+  {
+    "id": 12,
+    "agent_id": 2,
+    "type": "commission",
+    "amount": 0.09,
+    "balance_after": 22.77,
+    "related_id": 6,
+    "related_type": "order",
+    "description": "订单佣金 - 校内包裹配送服务",
+    "created_at": "2026-07-02T10:04:39.941Z"
+  },
+  {
+    "id": 13,
+    "agent_id": 2,
+    "type": "commission",
+    "amount": 0.09,
+    "balance_after": 22.86,
+    "related_id": 5,
+    "related_type": "order",
+    "description": "订单佣金 - 校内包裹配送服务",
+    "created_at": "2026-07-02T10:04:43.173Z"
+  },
+  {
+    "id": 14,
+    "agent_id": 2,
+    "type": "commission",
+    "amount": 0.09,
+    "balance_after": 22.95,
+    "related_id": 4,
+    "related_type": "order",
+    "description": "订单佣金 - 校内包裹配送服务",
+    "created_at": "2026-07-02T10:04:46.269Z"
   }
 ]

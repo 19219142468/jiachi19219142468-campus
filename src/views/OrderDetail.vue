@@ -132,7 +132,7 @@
         <div class="card">
           <div class="flex justify-between items-center">
             <span class="text-gray-600">应付金额</span>
-            <span class="text-2xl font-bold text-primary-600">¥{{ order.total_amount.toFixed(2) }}</span>
+            <span class="text-2xl font-bold text-primary-600">¥{{ formatMoney(order.total_amount) }}</span>
           </div>
         </div>
 
@@ -171,6 +171,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { orderApi } from '@/api'
 import { ChevronLeftIcon, CheckCircleIcon, ClockIcon, DocumentIcon, LocationMarkerIcon, RefreshIcon } from '@heroicons/vue/outline'
+import { formatMoney, formatTime } from '@/utils/format'
 
 const route = useRoute()
 const router = useRouter()
@@ -219,9 +220,7 @@ function statusDesc(status: string) {
   return descs[status] || ''
 }
 
-function formatTime(time: string) {
-  return new Date(time).toLocaleString('zh-CN')
-}
+
 
 async function fetchOrder() {
   loading.value = true
@@ -244,8 +243,11 @@ async function fetchOrder() {
     } else if (visitorPhone) {
       res = await orderApi.getOrderDetailByPhone(orderId, visitorPhone)
     } else {
-      // 没有手机号，跳转到订单查询页
-      router.push('/order')
+      if (window.history.length > 1) {
+        router.back()
+      } else {
+        router.push('/')
+      }
       return
     }
     

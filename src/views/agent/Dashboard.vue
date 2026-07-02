@@ -2,7 +2,7 @@
   <div>
     <h1 class="text-2xl font-bold text-gray-800 mb-6">工作台</h1>
     
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5 mb-6">
       <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
         <div class="flex items-center justify-between">
           <div>
@@ -31,7 +31,7 @@
         <div class="flex items-center justify-between">
           <div>
             <p class="text-gray-500 text-sm">今日收入</p>
-            <p class="text-3xl font-bold text-green-600 mt-1">¥{{ stats.todayIncome?.toFixed(2) || '0.00' }}</p>
+            <p class="text-3xl font-bold text-green-600 mt-1">¥{{ formatMoney(stats.todayIncome) }}</p>
           </div>
           <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
             <CurrencyDollarIcon class="w-6 h-6 text-green-600" />
@@ -42,8 +42,20 @@
       <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
         <div class="flex items-center justify-between">
           <div>
+            <p class="text-gray-500 text-sm">本月收入</p>
+            <p class="text-3xl font-bold text-blue-600 mt-1">¥{{ formatMoney(stats.monthIncome) }}</p>
+          </div>
+          <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+            <CurrencyDollarIcon class="w-6 h-6 text-blue-600" />
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+        <div class="flex items-center justify-between">
+          <div>
             <p class="text-gray-500 text-sm">累计收入</p>
-            <p class="text-3xl font-bold text-purple-600 mt-1">¥{{ stats.totalIncome?.toFixed(2) || '0.00' }}</p>
+            <p class="text-3xl font-bold text-purple-600 mt-1">¥{{ formatMoney(stats.totalIncome) }}</p>
           </div>
           <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
             <CurrencyDollarIcon class="w-6 h-6 text-purple-600" />
@@ -113,7 +125,7 @@
               <p class="text-xs text-gray-500">{{ typeLabels[order.type] }}</p>
             </div>
             <div class="text-right">
-              <p class="font-medium text-gray-800">¥{{ order.total_amount.toFixed(2) }}</p>
+              <p class="font-medium text-gray-800">¥{{ formatMoney(order.total_amount) }}</p>
               <span :class="['px-2 py-0.5 rounded text-xs', statusClass(order.status)]">
                 {{ statusLabels[order.status] }}
               </span>
@@ -128,6 +140,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
+import { formatMoney } from '@/utils/format'
 import { 
   ClipboardListIcon, 
   ClockIcon, 

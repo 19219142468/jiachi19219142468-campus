@@ -1,4 +1,4 @@
-﻿import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 
 const routes: RouteRecordRaw[] = [
@@ -78,6 +78,16 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/tools/IdPhoto.vue')
   },
   {
+    path: '/tools/image-compress',
+    name: 'ImageCompress',
+    component: () => import('@/views/tools/ImageCompress.vue')
+  },
+  {
+    path: '/tools/image-convert',
+    name: 'ImageConvert',
+    component: () => import('@/views/tools/ImageConvert.vue')
+  },
+  {
     path: '/admin',
     name: 'Admin',
     component: () => import('@/views/admin/Index.vue'),
@@ -110,7 +120,10 @@ const routes: RouteRecordRaw[] = [
       { path: 'services', name: 'SuperAdminServices', component: () => import('@/views/super-admin/Services.vue') },
       { path: 'finance', name: 'SuperAdminFinance', component: () => import('@/views/super-admin/Finance.vue') },
       { path: 'payment-records', name: 'SuperAdminPaymentRecords', component: () => import('@/views/super-admin/PaymentRecords.vue') },
-      { path: 'agent-withdrawals', name: 'SuperAdminAgentWithdrawals', component: () => import('@/views/super-admin/AgentWithdrawals.vue') }
+      { path: 'agent-withdrawals', name: 'SuperAdminAgentWithdrawals', component: () => import('@/views/super-admin/AgentWithdrawals.vue') },
+      { path: 'reconciliation', name: 'SuperAdminReconciliation', component: () => import('@/views/super-admin/Reconciliation.vue') },
+      { path: 'logs', name: 'SuperAdminLogs', component: () => import('@/views/super-admin/OperationLogs.vue') },
+      { path: 'reviews', name: 'SuperAdminReviews', component: () => import('@/views/super-admin/Reviews.vue') }
     ]
   },
   {
@@ -183,14 +196,23 @@ router.beforeEach((to, from, next) => {
   }
   
   if (isAdminRoute && token) {
-    const user = JSON.parse(localStorage.getItem('user') || '{}')
-    if (user.role !== 'admin' && user.role !== 'super_admin') {
+    try {
+      const user = JSON.parse(localStorage.getItem('user') || '{}')
+      if (user.role !== 'admin' && user.role !== 'super_admin') {
+        next('/')
+        return
+      }
+    } catch (e) {
       next('/')
       return
     }
   }
   
   next()
+})
+
+router.onError((error) => {
+  console.error('路由错误:', error)
 })
 
 export default router

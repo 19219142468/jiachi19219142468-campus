@@ -33,13 +33,13 @@
         <div class="flex items-center justify-between">
           <div>
             <p class="text-gray-500 text-sm">今日收入</p>
-            <p class="text-3xl font-bold text-green-600 mt-1">¥{{ stats.todayIncome?.toFixed(2) || '0.00' }}</p>
+            <p class="text-3xl font-bold text-green-600 mt-1">¥{{ formatMoney(stats.todayIncome) }}</p>
           </div>
           <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
             <CurrencyDollarIcon class="w-6 h-6 text-green-600" />
           </div>
         </div>
-        <p class="text-sm text-gray-400 mt-3">本月 ¥{{ stats.monthIncome?.toFixed(2) || '0.00' }}</p>
+        <p class="text-sm text-gray-400 mt-3">本月 ¥{{ formatMoney(stats.monthIncome) }}</p>
       </div>
 
       <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
@@ -66,7 +66,7 @@
           </div>
           <div class="flex justify-between items-center">
             <span class="text-gray-500">总收入</span>
-            <span class="font-semibold text-green-600">¥{{ stats.totalRevenue?.toFixed(2) || '0.00' }}</span>
+            <span class="font-semibold text-green-600">¥{{ formatMoney(stats.totalRevenue) }}</span>
           </div>
           <div class="flex justify-between items-center">
             <span class="text-gray-500">注册用户</span>
@@ -146,7 +146,7 @@
               </div>
               <div class="text-right">
                 <p class="font-semibold text-gray-800">{{ agent.total_orders }} 单</p>
-                <p class="text-xs text-green-600">¥{{ agent.total_income?.toFixed(2) || '0.00' }}</p>
+                <p class="text-xs text-green-600">¥{{ formatMoney(agent.total_income) }}</p>
               </div>
             </div>
           </div>
@@ -175,7 +175,7 @@
                     {{ typeLabels[order.type] }}
                   </span>
                 </td>
-                <td class="px-6 py-3 text-sm font-medium text-gray-800">¥{{ order.total_amount.toFixed(2) }}</td>
+                <td class="px-6 py-3 text-sm font-medium text-gray-800">¥{{ formatMoney(order.total_amount) }}</td>
                 <td class="px-6 py-3 text-sm">
                   <span :class="['px-2 py-1 rounded-full text-xs', statusClass(order.status)]">
                     {{ statusLabels[order.status] }}
@@ -196,6 +196,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
+import { formatMoney } from '@/utils/format'
 import { 
   ClipboardListIcon, 
   ClockIcon, 

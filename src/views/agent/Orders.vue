@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div>
     <div class="flex items-center justify-between mb-6">
       <h1 class="text-2xl font-bold text-gray-800">我的订单</h1>
@@ -46,7 +46,7 @@
                   {{ typeLabels[order.type] }}
                 </span>
               </td>
-              <td class="px-6 py-4 text-sm font-medium text-gray-800">¥{{ order.total_amount.toFixed(2) }}</td>
+              <td class="px-6 py-4 text-sm font-medium text-gray-800">¥{{ formatMoney(order.total_amount) }}</td>
               <td class="px-6 py-4 text-sm">
                 <span :class="['px-2 py-1 rounded-full text-xs', statusClass(order.status)]">
                   {{ statusLabels[order.status] }}
@@ -101,7 +101,7 @@
                   </span>
                 </div>
                 <div><span class="text-gray-500">类型：</span>{{ typeLabels[orderDetail.type] }}</div>
-                <div><span class="text-gray-500">金额：</span>¥{{ orderDetail.total_amount.toFixed(2) }}</div>
+                <div><span class="text-gray-500">金额：</span>¥{{ formatMoney(orderDetail.total_amount) }}</div>
               </div>
             </div>
 
@@ -161,6 +161,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
+import { formatMoney, formatTime } from '@/utils/format'
 import { XIcon } from '@heroicons/vue/outline'
 
 const orders = ref<any[]>([])
@@ -208,10 +209,6 @@ function typeClass(type: string) {
     handwriting: 'bg-purple-100 text-purple-700'
   }
   return classes[type] || 'bg-gray-100 text-gray-700'
-}
-
-function formatTime(time: string) {
-  return new Date(time).toLocaleString('zh-CN')
 }
 
 function getAuthHeaders() {

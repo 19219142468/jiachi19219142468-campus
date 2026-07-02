@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div>
     <h1 class="text-2xl font-bold text-gray-800 mb-6">个人中心</h1>
 
@@ -22,7 +22,7 @@
             </div>
             <div class="p-4 bg-gray-50 rounded-xl">
               <p class="text-sm text-gray-500">累计收入</p>
-              <p class="text-2xl font-bold text-emerald-600 mt-1">¥{{ (agent?.total_income || 0).toFixed(2) }}</p>
+              <p class="text-2xl font-bold text-emerald-600 mt-1">¥{{ formatMoney(agent?.total_income) }}</p>
             </div>
           </div>
           <div>
@@ -97,6 +97,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
+import { formatMoney } from '@/utils/format'
 
 const agent = ref<any>(null)
 const passwordForm = ref({

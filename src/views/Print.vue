@@ -322,16 +322,18 @@
         </div>
       </div>
     </main>
+    <MobileBottomNav />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { orderApi } from '@/api'
+import { orderApi, uploadApi } from '@/api'
 import { ensureLoggedIn } from '@/utils/auth-helper'
 import { UploadIcon, DocumentIcon, XCircleIcon, ChevronLeftIcon, MinusIcon, PlusIcon } from '@heroicons/vue/outline'
 import { usePriceStore } from '@/stores/price'
+import MobileBottomNav from '@/components/MobileBottomNav.vue'
 
 const router = useRouter()
 const priceStore = usePriceStore()
@@ -479,8 +481,23 @@ async function submitOrder() {
       return
     }
 
-    const fileUrl = 'uploads/' + file.value.name
-    
+    // 先上传文件到服务器
+    let fileUrl = ''
+    if (file.value) {
+      try {
+        const uploadRes = await uploadApi.uploadFile(file.value)
+        if (uploadRes.code === 0 && uploadRes.data?.url) {
+          fileUrl = uploadRes.data.url
+        } else {
+          error.value = uploadRes.message || '文件上传失败，请重试'
+          return
+        }
+      } catch (e) {
+        error.value = '文件上传失败，请检查网络后重试'
+        return
+      }
+    }
+
     const res = await orderApi.createPrintOrder({
       items: [{
         file_url: fileUrl,

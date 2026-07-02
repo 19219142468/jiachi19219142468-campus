@@ -40,7 +40,7 @@
       </div>
       <div class="bg-white rounded-2xl shadow-sm p-6">
         <p class="text-gray-500 text-sm mb-1">总支付金额</p>
-        <p class="text-3xl font-bold text-green-600">¥{{ totalAmount.toFixed(2) }}</p>
+        <p class="text-3xl font-bold text-green-600">¥{{ formatMoney(totalAmount) }}</p>
       </div>
       <div class="bg-white rounded-2xl shadow-sm p-6">
         <p class="text-gray-500 text-sm mb-1">自动核验</p>
@@ -92,7 +92,7 @@
                 </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
-                <span class="text-lg font-bold text-green-600">¥{{ record.amount.toFixed(2) }}</span>
+                <span class="text-lg font-bold text-green-600">¥{{ formatMoney(record.amount) }}</span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <span :class="['inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium', 
@@ -124,6 +124,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { superAdminApi } from '@/api'
+import { formatMoney, formatTime } from '@/utils/format'
 
 const records = ref<any[]>([])
 const loading = ref(false)
@@ -158,12 +159,6 @@ async function fetchRecords() {
   } finally {
     loading.value = false
   }
-}
-
-function formatTime(time: string) {
-  if (!time) return ''
-  const date = new Date(time)
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
 }
 
 onMounted(() => {

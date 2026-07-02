@@ -1,8 +1,8 @@
-﻿<template>
+<template>
   <div class="min-h-screen bg-gray-50">
     <div class="flex">
-      <aside class="w-64 bg-gradient-to-b from-indigo-900 via-purple-900 to-purple-800 text-white min-h-screen fixed shadow-xl">
-        <div class="p-6 border-b border-white/10">
+      <aside class="w-64 bg-gradient-to-b from-indigo-900 via-purple-900 to-purple-800 text-white min-h-screen fixed shadow-xl flex flex-col">
+        <div class="p-6 border-b border-white/10 flex-shrink-0">
           <div class="flex items-center gap-3">
             <div class="w-11 h-11 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center">
               <span class="text-white text-xl font-bold">S</span>
@@ -14,7 +14,7 @@
           </div>
         </div>
         
-        <nav class="mt-6 px-3">
+        <nav class="mt-6 px-3 flex-1 overflow-y-auto pb-40">
           <router-link 
             v-for="item in menuItems"
             :key="item.path"
@@ -37,14 +37,14 @@
           </router-link>
         </nav>
 
-        <div class="absolute bottom-0 w-full p-4 border-t border-white/10">
+        <div class="absolute bottom-0 left-0 w-full p-4 border-t border-white/10 bg-gradient-to-t from-purple-800 to-transparent">
           <div class="flex items-center gap-3 px-2 py-3 mb-2">
-            <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+            <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
               <UserIcon class="w-5 h-5 text-white" />
             </div>
-            <div class="flex-1">
-              <p class="text-white font-medium text-sm">{{ adminInfo?.nickname || '超级管理员' }}</p>
-              <p class="text-white/60 text-xs">{{ adminInfo?.phone || '' }}</p>
+            <div class="flex-1 min-w-0">
+              <p class="text-white font-medium text-sm truncate">{{ adminInfo?.nickname || '超级管理员' }}</p>
+              <p class="text-white/60 text-xs truncate">{{ adminInfo?.phone || '' }}</p>
             </div>
           </div>
           <button 
@@ -77,7 +77,9 @@ import {
   CashIcon,
   ArrowRightIcon,
   BellIcon,
-  ReceiptTaxIcon
+  ReceiptTaxIcon,
+  CalculatorIcon,
+  StarIcon
 } from '@heroicons/vue/outline'
 import { superAdminApi } from '@/api'
 
@@ -95,7 +97,10 @@ const menuItems = [
   { path: '/super-admin/users', label: '用户管理', icon: UserIcon },
   { path: '/super-admin/services', label: '服务定价', icon: CogIcon },
   { path: '/super-admin/finance', label: '资金财务', icon: CurrencyDollarIcon },
-  { path: '/super-admin/agent-withdrawals', label: '提现审核', icon: CashIcon }
+  { path: '/super-admin/agent-withdrawals', label: '提现审核', icon: CashIcon },
+  { path: '/super-admin/reconciliation', label: '对账汇总', icon: CalculatorIcon },
+  { path: '/super-admin/logs', label: '操作日志', icon: ClipboardListIcon },
+  { path: '/super-admin/reviews', label: '用户评价', icon: StarIcon }
 ]
 
 async function fetchPendingCount() {

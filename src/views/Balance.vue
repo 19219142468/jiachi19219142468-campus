@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="min-h-screen bg-gray-50 pb-20 md:pb-8">
     <!-- 顶部导航 -->
     <header class="bg-white shadow-sm">
@@ -16,7 +16,7 @@
       <!-- 余额卡片 -->
       <div class="card bg-gradient-to-br from-primary-600 to-primary-700 text-white mb-6">
         <p class="text-primary-100 mb-2">当前余额</p>
-        <p class="text-4xl font-bold mb-4">¥{{ userStore.user?.balance?.toFixed(2) || '0.00' }}</p>
+        <p class="text-4xl font-bold mb-4">¥{{ formatMoney(userStore.user?.balance) }}</p>
         <div class="flex gap-4">
           <button @click="activeTab = 'recharge'" class="flex-1 bg-white/20 hover:bg-white/30 py-2 rounded-lg font-medium transition-colors">
             充值
@@ -87,7 +87,7 @@
         <div class="mb-6">
           <label class="block text-sm font-medium text-gray-700 mb-2">提现金额</label>
           <input v-model.number="withdrawAmount" type="number" :max="userStore.user?.balance" class="input-field" placeholder="请输入提现金额" />
-          <p class="text-sm text-gray-500 mt-2">可提现余额: ¥{{ userStore.user?.balance?.toFixed(2) || '0.00' }}</p>
+          <p class="text-sm text-gray-500 mt-2">可提现余额: ¥{{ formatMoney(userStore.user?.balance) }}</p>
         </div>
 
         <p class="text-sm text-gray-500 mb-6">提现申请提交后，将在1-3个工作日内到账</p>
@@ -110,7 +110,7 @@
               <p v-if="record.remark" class="text-sm text-gray-400 mt-1">{{ record.remark }}</p>
             </div>
             <p :class="['text-lg font-bold', record.amount > 0 ? 'text-green-600' : 'text-gray-800']">
-              {{ record.amount > 0 ? '+' : '' }}{{ record.amount.toFixed(2) }}
+              {{ record.amount > 0 ? '+' : '' }}{{ formatMoney(record.amount) }}
             </p>
           </div>
         </div>
@@ -129,6 +129,7 @@ import { useUserStore } from '@/stores/user'
 import { financeApi } from '@/api'
 import { ChevronLeftIcon } from '@heroicons/vue/outline'
 import type { Transaction } from '@/types'
+import { formatMoney, formatTime } from '@/utils/format'
 
 const userStore = useUserStore()
 const activeTab = ref('recharge')
@@ -150,10 +151,6 @@ const typeLabels: Record<string, string> = {
 function showMessage(type: string, text: string) {
   message.value = { type, text }
   setTimeout(() => { message.value = null }, 3000)
-}
-
-function formatTime(time: string) {
-  return new Date(time).toLocaleString('zh-CN')
 }
 
 async function handleRecharge() {

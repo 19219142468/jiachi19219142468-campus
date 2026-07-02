@@ -48,5 +48,10 @@
     "key_name": "express_large_urgent",
     "value": "1.5",
     "description": "快递大件加急费"
+  },
+  {
+    "key_name": "wechat_qrcode",
+    "value": "/uploads/wechat_qrcode_1782841855551.jpeg",
+    "description": "微信收款码URL"
   }
 ]

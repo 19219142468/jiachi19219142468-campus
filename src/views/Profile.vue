@@ -70,6 +70,17 @@
         </div>
       </div>
 
+      <!-- 联系客服 -->
+      <div class="card mt-6">
+        <button @click="openContact" class="flex items-center gap-4 w-full">
+          <div class="w-10 h-10 rounded-lg bg-pink-100 flex items-center justify-center">
+            <ChatAltIcon class="w-5 h-5 text-pink-600" />
+          </div>
+          <span class="flex-1 font-medium text-gray-800 text-left">联系客服</span>
+          <ChevronRightIcon class="w-5 h-5 text-gray-400" />
+        </button>
+      </div>
+
       <!-- 管理员入口 -->
       <div v-if="userStore.user?.role === 'admin'" class="card mt-6">
         <router-link to="/admin" class="flex items-center gap-4">
@@ -99,6 +110,29 @@
         </router-link>
       </div>
     </nav>
+
+    <!-- 联系客服弹窗 -->
+    <div v-if="showContact" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" @click.self="showContact = false">
+      <div class="bg-white rounded-2xl w-full max-w-sm p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-bold text-gray-800">联系客服</h3>
+          <button @click="showContact = false" class="text-gray-400 hover:text-gray-600">
+            <XIcon class="w-5 h-5" />
+          </button>
+        </div>
+        <div class="bg-pink-50 rounded-xl p-4 mb-4">
+          <p class="text-sm text-gray-600 mb-2">客服微信号</p>
+          <div class="flex items-center gap-2">
+            <p class="text-lg font-bold text-pink-600 flex-1">wxid_jv428py2ftir22</p>
+            <button @click="copyWechat" class="px-3 py-1 bg-pink-500 text-white text-sm rounded-lg hover:bg-pink-600 transition-colors flex items-center gap-1">
+              <DocumentDuplicateIcon class="w-4 h-4" />
+              {{ copied ? '已复制' : '复制' }}
+            </button>
+          </div>
+        </div>
+        <p class="text-sm text-gray-500 text-center">微信扫码或搜索添加，随时为您服务</p>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -115,7 +149,10 @@ import {
   LocationMarkerIcon,
   CreditCardIcon,
   ArrowRightIcon,
-  CogIcon
+  CogIcon,
+  ChatAltIcon,
+  DocumentDuplicateIcon,
+  XIcon
 } from '@heroicons/vue/outline'
 
 const router = useRouter()
@@ -131,13 +168,44 @@ const menuItems = computed(() => [
     iconColor: 'text-blue-600'
   },
   {
-    path: '/addresses',
+    path: '/profile/balance',
+    label: '余额钱包',
+    icon: CreditCardIcon,
+    bgColor: 'bg-yellow-100',
+    iconColor: 'text-yellow-600'
+  },
+  {
+    path: '/profile/addresses',
     label: '收货地址',
     icon: LocationMarkerIcon,
     bgColor: 'bg-green-100',
     iconColor: 'text-green-600'
   }
 ])
+
+const showContact = ref(false)
+const copied = ref(false)
+
+function openContact() {
+  showContact.value = true
+}
+
+async function copyWechat() {
+  try {
+    await navigator.clipboard.writeText('wxid_jv428py2ftir22')
+    copied.value = true
+    setTimeout(() => { copied.value = false }, 2000)
+  } catch {
+    const input = document.createElement('input')
+    input.value = 'wxid_jv428py2ftir22'
+    document.body.appendChild(input)
+    input.select()
+    document.execCommand('copy')
+    document.body.removeChild(input)
+    copied.value = true
+    setTimeout(() => { copied.value = false }, 2000)
+  }
+}
 
 onMounted(() => {
   // 获取本地保存的手机号

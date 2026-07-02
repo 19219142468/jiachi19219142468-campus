@@ -41,7 +41,7 @@
           <span :class="['px-3 py-1 rounded-full text-xs font-medium', typeClass(order.type)]">
             {{ typeLabels[order.type] }}
           </span>
-          <span class="text-lg font-bold text-emerald-600">¥{{ order.total_amount.toFixed(2) }}</span>
+          <span class="text-lg font-bold text-emerald-600">¥{{ formatMoney(order.total_amount) }}</span>
         </div>
 
         <p class="text-sm text-gray-500 mb-1">订单号</p>
@@ -65,6 +65,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import axios from 'axios'
+import { formatMoney, formatTime } from '@/utils/format'
 import { CollectionIcon } from '@heroicons/vue/outline'
 
 const poolOrders = ref<any[]>([])
@@ -86,10 +87,6 @@ function typeClass(type: string) {
     handwriting: 'bg-purple-100 text-purple-700'
   }
   return classes[type] || 'bg-gray-100 text-gray-700'
-}
-
-function formatTime(time: string) {
-  return new Date(time).toLocaleString('zh-CN')
 }
 
 function getAuthHeaders() {

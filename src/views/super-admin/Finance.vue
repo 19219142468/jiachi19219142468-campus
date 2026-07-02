@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div>
     <div class="flex items-center justify-between mb-6">
       <h1 class="text-2xl font-bold text-gray-800">资金财务</h1>
@@ -14,20 +14,20 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
       <div class="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-6 text-white">
         <p class="text-white/80 text-sm">平台可提现余额</p>
-        <p class="text-3xl font-bold mt-2">¥{{ stats.platformBalance?.toFixed(2) || '0.00' }}</p>
+        <p class="text-3xl font-bold mt-2">¥{{ formatMoney(stats.platformBalance) }}</p>
         <p class="text-white/70 text-xs mt-2">抽成比例：10%</p>
       </div>
       <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
         <p class="text-gray-500 text-sm">今日平台收入</p>
-        <p class="text-2xl font-bold text-green-600 mt-1">¥{{ stats.todayPlatformIncome?.toFixed(2) || '0.00' }}</p>
+        <p class="text-2xl font-bold text-green-600 mt-1">¥{{ formatMoney(stats.todayPlatformIncome) }}</p>
       </div>
       <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
         <p class="text-gray-500 text-sm">累计平台收入</p>
-        <p class="text-2xl font-bold text-blue-600 mt-1">¥{{ stats.totalPlatformIncome?.toFixed(2) || '0.00' }}</p>
+        <p class="text-2xl font-bold text-blue-600 mt-1">¥{{ formatMoney(stats.totalPlatformIncome) }}</p>
       </div>
       <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
         <p class="text-gray-500 text-sm">累计总营收</p>
-        <p class="text-2xl font-bold text-amber-600 mt-1">¥{{ stats.totalRevenue?.toFixed(2) || '0.00' }}</p>
+        <p class="text-2xl font-bold text-amber-600 mt-1">¥{{ formatMoney(stats.totalRevenue) }}</p>
       </div>
     </div>
 
@@ -37,15 +37,15 @@
         <div class="space-y-3">
           <div class="flex justify-between items-center">
             <span class="text-gray-500">累计发放佣金</span>
-            <span class="font-semibold text-gray-800">¥{{ stats.totalAgentCommission?.toFixed(2) || '0.00' }}</span>
+            <span class="font-semibold text-gray-800">¥{{ formatMoney(stats.totalAgentCommission) }}</span>
           </div>
           <div class="flex justify-between items-center">
             <span class="text-gray-500">业务员待提现余额</span>
-            <span class="font-semibold text-amber-600">¥{{ stats.totalAgentBalance?.toFixed(2) || '0.00' }}</span>
+            <span class="font-semibold text-amber-600">¥{{ formatMoney(stats.totalAgentBalance) }}</span>
           </div>
           <div class="flex justify-between items-center">
             <span class="text-gray-500">平台已提现</span>
-            <span class="font-semibold text-red-600">¥{{ stats.totalPlatformWithdraw?.toFixed(2) || '0.00' }}</span>
+            <span class="font-semibold text-red-600">¥{{ formatMoney(stats.totalPlatformWithdraw) }}</span>
           </div>
         </div>
       </div>
@@ -54,15 +54,15 @@
         <div class="space-y-3">
           <div class="flex justify-between items-center">
             <span class="text-gray-500">平台抽成（10%）</span>
-            <span class="font-semibold text-emerald-600">¥{{ stats.totalPlatformIncome?.toFixed(2) || '0.00' }}</span>
+            <span class="font-semibold text-emerald-600">¥{{ formatMoney(stats.totalPlatformIncome) }}</span>
           </div>
           <div class="flex justify-between items-center">
             <span class="text-gray-500">业务员佣金（90%）</span>
-            <span class="font-semibold text-blue-600">¥{{ stats.totalAgentCommission?.toFixed(2) || '0.00' }}</span>
+            <span class="font-semibold text-blue-600">¥{{ formatMoney(stats.totalAgentCommission) }}</span>
           </div>
           <div class="border-t border-gray-100 pt-3 flex justify-between items-center">
             <span class="text-gray-700 font-medium">合计</span>
-            <span class="font-bold text-gray-800">¥{{ ((stats.totalPlatformIncome || 0) + (stats.totalAgentCommission || 0)).toFixed(2) }}</span>
+            <span class="font-bold text-gray-800">¥{{ formatMoney((stats.totalPlatformIncome || 0) + (stats.totalAgentCommission || 0)) }}</span>
           </div>
         </div>
       </div>
@@ -102,8 +102,8 @@
                   </span>
                 </td>
                 <td class="px-4 py-3 text-sm text-gray-700">{{ record.agent_name || '-' }}</td>
-                <td class="px-4 py-3 text-sm text-gray-800">¥{{ record.total_amount?.toFixed(2) || '0.00' }}</td>
-                <td class="px-4 py-3 text-sm font-medium text-green-600">+¥{{ record.amount?.toFixed(2) || '0.00' }}</td>
+                <td class="px-4 py-3 text-sm text-gray-800">¥{{ formatMoney(record.total_amount) }}</td>
+                <td class="px-4 py-3 text-sm font-medium text-green-600">+¥{{ formatMoney(record.amount) }}</td>
                 <td class="px-4 py-3 text-sm text-gray-500">{{ record.description }}</td>
               </tr>
             </tbody>
@@ -137,7 +137,7 @@
                   {{ w.withdraw_method === 'alipay' ? w.alipay_account : w.wechat_account }}
                 </td>
                 <td class="px-4 py-3 text-sm text-gray-600">{{ w.real_name }}</td>
-                <td class="px-4 py-3 text-sm font-medium text-red-600">-¥{{ w.amount?.toFixed(2) || '0.00' }}</td>
+                <td class="px-4 py-3 text-sm font-medium text-red-600">-¥{{ formatMoney(w.amount) }}</td>
                 <td class="px-4 py-3 text-sm">
                   <span class="px-2 py-1 rounded text-xs" :class="withdrawStatusClass(w.status)">
                     {{ withdrawStatusLabels[w.status] }}
@@ -164,7 +164,7 @@
         <div class="p-6 space-y-4">
           <div class="p-4 bg-emerald-50 rounded-xl">
             <p class="text-sm text-gray-600">可提现余额</p>
-            <p class="text-2xl font-bold text-emerald-600">¥{{ stats.platformBalance?.toFixed(2) || '0.00' }}</p>
+            <p class="text-2xl font-bold text-emerald-600">¥{{ formatMoney(stats.platformBalance) }}</p>
           </div>
 
           <div>
@@ -228,7 +228,7 @@
               />
               <button 
                 type="button"
-                @click="withdrawForm.amount = (stats.platformBalance || 0).toFixed(2)"
+                @click="withdrawForm.amount = formatMoney(stats.platformBalance)"
                 class="absolute right-2 top-1/2 -translate-y-1/2 text-emerald-600 text-sm hover:text-emerald-700"
               >
                 全部提现
@@ -256,6 +256,7 @@
 import { ref, onMounted } from 'vue'
 import { XIcon } from '@heroicons/vue/outline'
 import { superAdminApi } from '@/api'
+import { formatMoney, formatTime } from '@/utils/format'
 
 const stats = ref<any>({})
 const incomeRecords = ref<any[]>([])
@@ -298,11 +299,6 @@ function withdrawStatusClass(status: string) {
     rejected: 'bg-red-100 text-red-700'
   }
   return classes[status] || 'bg-gray-100 text-gray-700'
-}
-
-function formatTime(time: string) {
-  if (!time) return ''
-  return new Date(time).toLocaleString('zh-CN')
 }
 
 async function fetchFinanceStats() {
