@@ -2763,7 +2763,7 @@ app.get('/api/payment/qrcode', (req, res) => {
   })
 })
 
-let currentPort = 40000
+let currentPort = 80
 
 server.on('error', (err) => {
   if (err.code === 'EADDRINUSE') {
